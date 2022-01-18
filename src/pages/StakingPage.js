@@ -1,27 +1,21 @@
 import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
 import Card from "../components/common/Card";
 import Spinner from "../components/common/Spinner";
 import { initWeb3 } from "../utils.js";
-// import LeadStake from "../contracts/flexibleStake.json";
 import FlexibleStake from "../contracts/FlexibleStake.json";
 import MMPRO from "../contracts/MMPRO.json";
-// import ERC20 from "../contracts/ERC20.json";
 import fromExponential from "from-exponential";
 import { Link } from "react-router-dom";
 const HomePage = (props) => {
 
   const [loading, setLoading] = useState(false);
   const [stakeLoading, setStakeLoading] = useState(false);
-  const [unstakeLoading, setUnstakeLoading] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [error, setError] = useState("");
   const [web3, setWeb3] = useState();
   const [accounts, setAccounts] = useState();
-  // const [flexibleStake, setLeadStake] = useState();
   const [flexibleStake, setFlexibleStake] = useState();
   const [emissionPerSecond, setEmissionPerSecond] = useState();
   const [cumulativeIndex, setCumulativeIndex] = useState();
@@ -71,9 +65,6 @@ const HomePage = (props) => {
       "0x782A2651BC14b8529Cca036b9AFc2e1487e8ecEe"
     ); //mainnet adddress for staking dapp
     const totalStaked = await flexibleStake.methods.totalStaked().call();
-    const emissionPerSecond = await flexibleStake.methods.emissionPerSecond().call();
-    const cumulativeIndex = await flexibleStake.methods.cumulativeIndex().call();
-    const lastUpdatedTimestamp = await flexibleStake.methods.lastUpdatedTimestamp().call();
     const stakeToken = await flexibleStake.methods.stakeToken().call();
     const freeAmount = await flexibleStake.methods.freeAmount().call();
     // const usersStake = await flexibleStake.methods.usersStake(accounts[0]).call();
@@ -318,23 +309,6 @@ const HomePage = (props) => {
                     </ul>
                   </div>
                 </Card>
-                <div className="flex flex-col pt-8 px-2">
-                  <br /><br /><br /><br />
-                </div>
-                {/* <Card noLine>
-                  <div className="flex flex-col px-2">
-                    <div className="text-center pb-4">
-                      <div className="text-white text-xs">
-                        <span className="text-blue-500">Disclaimer</span> Staking Smart Contract was audited by{" "}
-                        <a href="https://immunebytes.com/" target="_blank" className="text-blue-500">
-                          Immune Bytes
-                        </a>. Keep in mind that security audits don't fully eliminate all
-                        possible security risks. Use our staking page at your MMPRO risk. <br />
-                        <span className="text-blue-500">Note</span> The Stake Rewards can be reduced without prior warning, stakers are advised to claim their rewards daily.
-                      </div>
-                    </div>
-                  </div>
-                </Card> */}
               </div>
             </div>
           )}
