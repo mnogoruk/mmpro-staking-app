@@ -12,7 +12,7 @@ const App = () => {
         {/* <Route path="/" exact>
           <StakingPage2 />
         </Route> */}
-        <Route path="/bsc" exact>
+        <Route path="/" exact>
           <StakingPage />
         </Route>
       </Switch>
