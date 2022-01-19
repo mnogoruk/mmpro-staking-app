@@ -17,19 +17,18 @@ const HomePage = (props) => {
   const [web3, setWeb3] = useState();
   const [accounts, setAccounts] = useState();
   const [flexibleStake, setFlexibleStake] = useState();
-  const [emissionPerSecond, setEmissionPerSecond] = useState();
-  const [cumulativeIndex, setCumulativeIndex] = useState();
-  const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState();
-  const [stakeToken, setStakeToken] = useState();
-  const [usersStake, setUserStake] = useState();
+  // const [stakeToken, setStakeToken] = useState();
+  // const [usersStake, setUserStake] = useState();
+  // const [freeAmount, setFreeAmount] = useState();
+  // const [totalSupply, setTotalSupply] = useState();
   const [mmPROToken, setMmPROToken] = useState();
-  const [totalSupply, setTotalSupply] = useState();
   const [balance, setBalance] = useState();
   const [totalStaked, setTotalStaked] = useState();
-  const [freeAmount, setFreeAmount] = useState();
+  const [stakedByUser, setStakedByUser] = useState(0);
   const [totalRewards, setTotalRewards] = useState();
   const [amount, setAmount] = useState(0);
   const [showModal, setShowModal] = useState(false);
+
   const init = async () => {
     if (isReady()) {
       return;
@@ -56,34 +55,52 @@ const HomePage = (props) => {
     const mmPROToken = new web3.eth.Contract(
       MMPRO.abi,
       "0xa8892B044eCE158cb4869B59F1972Fa01Aae6D2E"
-    ); //mainnet address for lead token
-    const totalSupply = await mmPROToken.methods.totalSupply().call();
+    ); //testnet address for MMPRO token
+
+    // const totalSupply = await mmPROToken.methods.totalSupply().call();
+    // const stakeToken = await flexibleStake.methods.stakeToken().call();
+    // const freeAmount = await flexibleStake.methods.freeAmount().call();
     const balance = await mmPROToken.methods.balanceOf(accounts[0]).call();
 
     const flexibleStake = new web3.eth.Contract(
       FlexibleStake.abi,
       "0x782A2651BC14b8529Cca036b9AFc2e1487e8ecEe"
-    ); //mainnet adddress for staking dapp
+    ); //testnet adddress for staking dapp
     const totalStaked = await flexibleStake.methods.totalStaked().call();
-    const stakeToken = await flexibleStake.methods.stakeToken().call();
-    const freeAmount = await flexibleStake.methods.freeAmount().call();
-    // const usersStake = await flexibleStake.methods.usersStake(accounts[0]).call();
+    const stakedByUserArray = await flexibleStake.methods.getUserStakes(accounts[0]).call();
+    let sumOfStaked = 0;
+    stakedByUserArray.forEach(stakedByUserIndex => {
+      sumOfStaked = parseInt(sumOfStaked) + parseInt(stakedByUserIndex.amount);
+    });
+
+
+    let sumTotalRewards = 0;
+    for (let i = 0; i < stakedByUserArray.length; i++) {
+      const rewards = await flexibleStake.methods.calcRewardsByIndex(accounts[0], i).call();
+      if (rewards.claimable) {
+        sumTotalRewards = parseInt(sumTotalRewards) + parseInt(rewards.rewards);
+      }
+    }
 
     setWeb3(web3);
     setAccounts(accounts);
+    // setTotalSupply(totalSupply);
+    // setFreeAmount(freeAmount);
+    // setStakeToken(stakeToken);
     setMmPROToken(mmPROToken);
-    setTotalSupply(totalSupply);
     setBalance(balance);
-    setFreeAmount(freeAmount);
     setTotalStaked(totalStaked);
-    setEmissionPerSecond(emissionPerSecond);
-    setCumulativeIndex(cumulativeIndex);
-    setLastUpdatedTimestamp(lastUpdatedTimestamp);
-    setStakeToken(stakeToken);
     setFlexibleStake(flexibleStake);
+    setStakedByUser(sumOfStaked);
+    setTotalRewards(sumTotalRewards);
 
     window.ethereum.on("accountsChanged", (accounts) => {
-      setAccounts(accounts);
+      // debugger;
+      if (accounts.length > 0) {
+        setAccounts(accounts);
+      } else {
+        setAccounts(null);
+      }
     });
 
     setLoading(false);
@@ -109,14 +126,13 @@ const HomePage = (props) => {
 
   async function updateAll() {
     await Promise.all([
-      updateTotalSupply(),
+      // updateTotalSupply(),
+      // updateStakeToken(),
+      // updateFreeAmount(),
       updateAccountBalance(),
       updateTotalStaked(),
-      updateEmissionPerSecond(),
-      updateCumulativeIndex(),
-      updateLastUpdatedTimestamp(),
-      updateStakeToken(),
-      updateFreeAmount()
+      updateStakedByUser(),
+      updateTotalRewards()
     ]);
   }
 
@@ -126,69 +142,75 @@ const HomePage = (props) => {
     }
   }, [flexibleStake, mmPROToken, web3, accounts]);
 
-  async function updateEmissionPerSecond() {
-    const emissionPerSecond = await flexibleStake.methods.emissionPerSecond().call();
-    setEmissionPerSecond(emissionPerSecond);
-    return emissionPerSecond;
+  async function updateStakedByUser() {
+    if (flexibleStake) {
+      let sumOfStaked = 0;
+      const stakedByUserArray = await flexibleStake.methods.getUserStakes(accounts[0]).call();
+      stakedByUserArray.forEach(stakedByUserIndex => {
+        sumOfStaked = parseInt(sumOfStaked) + parseInt(stakedByUserIndex.amount);
+      });
+      setStakedByUser(sumOfStaked);
+      return sumOfStaked;
+    }
   }
 
-  async function updateFreeAmount() {
-    const freeAmount = await flexibleStake.methods.freeAmount().call();
-    setFreeAmount(freeAmount);
-    return freeAmount;
-  }
+  // async function updateFreeAmount() {
+  //   const freeAmount = await flexibleStake.methods.freeAmount().call();
+  //   setFreeAmount(freeAmount);
+  //   return freeAmount;
+  // }
 
-  async function updateCumulativeIndex() {
-    const cumulativeIndex = await flexibleStake.methods.cumulativeIndex().call();
-    setCumulativeIndex(cumulativeIndex);
-    return cumulativeIndex;
-  }
+  // async function updateStakeToken() {
+  //   if (flexibleStake) {
+  //     const stakeToken = await flexibleStake.methods.stakeToken().call();
+  //     setStakeToken(stakeToken);
+  //     return stakeToken;
+  //   }
+  // }
 
-  async function updateLastUpdatedTimestamp() {
-    const lastUpdatedTimestamp = await flexibleStake.methods.lastUpdatedTimestamp().call();
-    setLastUpdatedTimestamp(lastUpdatedTimestamp);
-    return lastUpdatedTimestamp;
-  }
+  // async function updateTotalSupply() {
+  //   if (mmPROToken) {
+  //     const totalSupply = await mmPROToken.methods.totalSupply().call();
+  //     setTotalSupply(totalSupply);
+  //     return totalSupply;
+  //   }
+  // }
 
-  async function updateStakeToken() {
-    const stakeToken = await flexibleStake.methods.stakeToken().call();
-    setStakeToken(stakeToken);
-    return stakeToken;
-  }
-
-  async function updateStakes() {
-    const stake = await flexibleStake.methods.usersStake(accounts[0], 10).call();
-    setUserStake(stake);
-    return stake;
+  async function updateTotalRewards() {
+    if (flexibleStake) {
+      const _userStake = await flexibleStake.methods.getUserStakes(accounts[0]).call();
+      const count = _userStake.length;
+      let sumTotalRewards = 0;
+      for (let i = 0; i < count; i++) {
+        const rewards = await flexibleStake.methods.calcRewardsByIndex(accounts[0], i).call();
+        if (rewards.claimable) {
+          sumTotalRewards = parseInt(sumTotalRewards) + parseInt(rewards.rewards);
+        }
+      }
+      setTotalRewards(sumTotalRewards);
+      return sumTotalRewards;
+    }
   }
 
   async function updateAccountBalance() {
     if (mmPROToken) {
-      // debugger;
       const balance = await mmPROToken.methods.balanceOf(accounts[0]).call();
       setBalance(balance);
       return balance;
     }
   }
 
-  async function updateTotalSupply() {
-    if (mmPROToken) {
-      const totalSupply = await mmPROToken.methods.totalSupply().call();
-      setTotalSupply(totalSupply);
-      return totalSupply;
-    }
-  }
-
   async function updateTotalStaked() {
     if (flexibleStake) {
       const totalStaked = await flexibleStake.methods.totalStaked().call();
+      setTotalStaked(totalStaked);
       return totalStaked;
     }
   }
 
   async function stake() {
+
     setStakeLoading(true);
-    console.log(amount);
     const actual = amount * (10 ** 18);
     const arg = fromExponential(actual);
     try {
@@ -208,13 +230,19 @@ const HomePage = (props) => {
   }
 
   async function withdrawEarnings() {
+    console.log("withdrawEarnings");
     if (parseFloat(totalRewards) === 0) {
       console.error("No earnings yet!");
       return;
     }
     setWithdrawLoading(true);
     try {
-      await flexibleStake.methods.withdrawEarnings().send({ from: accounts[0] });
+      const _userStake = await flexibleStake.methods.getUserStakes(accounts[0]).call();
+      const count = _userStake.length;
+      console.log(count);
+      for (let i = 0; i < count; i++) {
+        await flexibleStake.methods.claimRewards(i).send({ from: accounts[0] });
+      }
       await updateAll();
     } catch (err) {
       if (err.code !== 4001) {
@@ -314,9 +342,18 @@ const HomePage = (props) => {
           )}
           {accounts && (
             <div className="grid grid-col-1 md:grid-cols-2 gap-6 mt-10">
-              <Card title="Total Staked MMPRO">
+              <Card title="Your/Total Staked MMPRO">
                 <div className="flex flex-col pt-8 pb-4 text-white">
                   <div className="text-center">
+                    <span className="text-white text-2xl ml-2">Yours</span>
+                    <span className="text-white text-5xl">
+                      {(
+                        (parseFloat(stakedByUser).toFixed(2)) /
+                        1000000000000000000
+                      ).toFixed(2)}
+                    </span>
+                    <span className="text-white text-2xl ml-2">MMPRO</span><br />
+                    <span className="text-white text-2xl ml-2">Total</span>
                     <span className="text-white text-5xl">
                       {(
                         (parseFloat(totalStaked).toFixed(2)) /
@@ -328,7 +365,7 @@ const HomePage = (props) => {
                   <div className="text-center">
                     {(
                       (parseFloat(totalStaked) * 100.0) /
-                      parseFloat(totalSupply)
+                      parseFloat(balance)
                     ).toFixed(5)}
                     %
                   </div>
@@ -384,7 +421,7 @@ const HomePage = (props) => {
                     <span className="text-lg text-gray-400">
                       Available amount:{" "}
                     </span>
-                    <span className="text-white text-3xl">{parseInt(parseInt(freeAmount) / 1000000000000000000)}</span>
+                    <span className="text-white text-3xl">{parseInt(parseInt(balance) / 1000000000000000000)}</span>
                     <span className="text-white text-2xl ml-2">MMPRO</span>
                   </div>
                   <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
@@ -397,14 +434,14 @@ const HomePage = (props) => {
                     />
                     <Button
                       onClick={() => stake()}
-                      className="flex flex-row items-center w-48 justify-center"
+                      className="flex flex-row items-center w-96 justify-center"
                     >
                       {stakeLoading ? (
                         <Spinner size={30} />
                       ) : (
                         <>
                           <img src="/images/locked.svg" width="25" alt="" />
-                          <span className="w-16">STAKE</span>{" "}
+                          <span className="w-48">APPROVE & STAKE</span>{" "}
                         </>
                       )}
                     </Button>
@@ -423,7 +460,7 @@ const HomePage = (props) => {
                   <div className="flex flex-row justify-center">
                     <Button
                       type="submit"
-                      className="flex flex-row items-center justify-center w-32"
+                      className="flex flex-row items-center justify-center w-48"
                       onClick={() => withdrawEarnings()}
                     >
                       {withdrawLoading ? (
@@ -431,7 +468,7 @@ const HomePage = (props) => {
                       ) : (
                         <>
                           <img src="/images/unlocked.svg" width="25" alt="" />
-                          <span className="w-24">CLAIM</span>{" "}
+                          <span className="w-32">CLAIM ALL</span>{" "}
                         </>
                       )}
                     </Button>
