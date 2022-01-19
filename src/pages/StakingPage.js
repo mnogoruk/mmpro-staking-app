@@ -12,6 +12,7 @@ const HomePage = (props) => {
 
   const [loading, setLoading] = useState(false);
   const [stakeLoading, setStakeLoading] = useState(false);
+  const [unstakeLoading, setUnstakeLoading] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [error, setError] = useState("");
   const [web3, setWeb3] = useState();
@@ -25,9 +26,12 @@ const HomePage = (props) => {
   const [balance, setBalance] = useState();
   const [totalStaked, setTotalStaked] = useState();
   const [stakedByUser, setStakedByUser] = useState(0);
+  const [unstakeList, setUnstakeList] = useState([]);
+  // const [unstakeAmount, setUnstakeAmount] = useState(0);
   const [totalRewards, setTotalRewards] = useState();
   const [amount, setAmount] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [optionsState, setOptionsState] = useState(0);
 
   const init = async () => {
     if (isReady()) {
@@ -70,18 +74,21 @@ const HomePage = (props) => {
     const stakedByUserArray = await flexibleStake.methods.getUserStakes(accounts[0]).call();
     let sumOfStaked = 0;
     stakedByUserArray.forEach(stakedByUserIndex => {
-      sumOfStaked = parseInt(sumOfStaked) + parseInt(stakedByUserIndex.amount);
+      sumOfStaked += parseInt(stakedByUserIndex.amount);
     });
 
 
+    let unstakeLists = [];
     let sumTotalRewards = 0;
     for (let i = 0; i < stakedByUserArray.length; i++) {
       const rewards = await flexibleStake.methods.calcRewardsByIndex(accounts[0], i).call();
       if (rewards.claimable) {
-        sumTotalRewards = parseInt(sumTotalRewards) + parseInt(rewards.rewards);
+        sumTotalRewards += parseInt(rewards.rewards);
+      }
+      if (rewards.withdrawable) {
+        unstakeLists.push({ "id": i, "amount": stakedByUserArray[i].amount });
       }
     }
-
     setWeb3(web3);
     setAccounts(accounts);
     // setTotalSupply(totalSupply);
@@ -93,6 +100,7 @@ const HomePage = (props) => {
     setFlexibleStake(flexibleStake);
     setStakedByUser(sumOfStaked);
     setTotalRewards(sumTotalRewards);
+    setUnstakeList(unstakeLists);
 
     window.ethereum.on("accountsChanged", (accounts) => {
       // debugger;
@@ -126,13 +134,10 @@ const HomePage = (props) => {
 
   async function updateAll() {
     await Promise.all([
-      // updateTotalSupply(),
-      // updateStakeToken(),
-      // updateFreeAmount(),
       updateAccountBalance(),
       updateTotalStaked(),
-      updateStakedByUser(),
-      updateTotalRewards()
+      // updateStakedByUser(),
+      updateTotalRewards(),
     ]);
   }
 
@@ -179,16 +184,23 @@ const HomePage = (props) => {
   async function updateTotalRewards() {
     if (flexibleStake) {
       const _userStake = await flexibleStake.methods.getUserStakes(accounts[0]).call();
+      const stakedByUserArray = await flexibleStake.methods.getUserStakes(accounts[0]).call();
       const count = _userStake.length;
       let sumTotalRewards = 0;
+      let unstakeLists = [];
       for (let i = 0; i < count; i++) {
         const rewards = await flexibleStake.methods.calcRewardsByIndex(accounts[0], i).call();
         if (rewards.claimable) {
           sumTotalRewards = parseInt(sumTotalRewards) + parseInt(rewards.rewards);
         }
+
+        if (rewards.withdrawable) {
+          unstakeLists.push({ "id": i, "amount": stakedByUserArray[i].amount });
+        }
       }
       setTotalRewards(sumTotalRewards);
-      return sumTotalRewards;
+      setUnstakeList(unstakeLists);
+      // return sumTotalRewards;
     }
   }
 
@@ -229,8 +241,28 @@ const HomePage = (props) => {
     setStakeLoading(false);
   }
 
+  async function unstake() {
+    console.log(optionsState);
+    if (parseFloat(stakedByUser) === 0) {
+      console.error("You don't have any staked LEADs yet!");
+      return;
+    }
+    setUnstakeLoading(true);
+    try {
+      const _userStake = await flexibleStake.methods.getUserStakes(accounts[0]).call();
+      const count = _userStake.length;
+      await flexibleStake.methods.withdraw(optionsState).send({ from: accounts[0] });
+      await updateAll();
+    } catch (err) {
+      if (err.code !== 4001) {
+        setShowModal(true);
+      }
+      console.error(err);
+    }
+    setUnstakeLoading(false);
+  }
+
   async function withdrawEarnings() {
-    console.log("withdrawEarnings");
     if (parseFloat(totalRewards) === 0) {
       console.error("No earnings yet!");
       return;
@@ -239,7 +271,6 @@ const HomePage = (props) => {
     try {
       const _userStake = await flexibleStake.methods.getUserStakes(accounts[0]).call();
       const count = _userStake.length;
-      console.log(count);
       for (let i = 0; i < count; i++) {
         await flexibleStake.methods.claimRewards(i).send({ from: accounts[0] });
       }
@@ -251,6 +282,10 @@ const HomePage = (props) => {
       console.error(err);
     }
     setWithdrawLoading(false);
+  }
+
+  function onSelectChanged(event) {
+    setOptionsState(event.target.value);
   }
 
   return (
@@ -342,7 +377,7 @@ const HomePage = (props) => {
           )}
           {accounts && (
             <div className="grid grid-col-1 md:grid-cols-2 gap-6 mt-10">
-              <Card title="Your/Total Staked MMPRO">
+              <Card title="Your / Total Staked MMPRO">
                 <div className="flex flex-col pt-8 pb-4 text-white">
                   <div className="text-center">
                     <span className="text-white text-2xl ml-2">Yours</span>
@@ -373,50 +408,35 @@ const HomePage = (props) => {
                 </div>
               </Card>
 
-              <Card title="Fees">
+              <Card title="Your Earnings">
                 <div className="flex flex-col pt-8 px-2">
                   <div className="text-center pb-8">
-                    <div className="text-gray-400 text-lg font-thin">
-                      <ul>
-                        {/* <li>
-                          Registration Fee:{"  "}
-                          <span className="text-white text-2xl">
-                            {parseInt(registrationTax) / 1000000000000000000} MMPRO
-                          </span>
-                        </li>
-                        <li>
-                          Staking Fee:{"  "}
-                          <span className="text-white text-2xl">
-                            {parseFloat(stakingTax) / 10} %
-                          </span>
-                        </li>
-                        <li>
-                          Unstaking Fee:{"  "}
-                          <span className="text-white text-2xl">
-                            {parseFloat(unstakingTax) / 10} %
-                          </span>
-                        </li>
-                        <li>
-                          Minimum Stake:{"  "}
-                          <span className="text-white text-2xl">
-                            {parseInt(minStake) / 1000000000000000000} MMPRO
-                          </span>
-                        </li> */}
-                      </ul>
-                    </div>
+                    <span className="text-white text-5xl">
+                      {(parseFloat(totalRewards) / 1000000000000000000).toFixed(2)}
+                    </span>
+                    <span className="text-white text-2xl ml-2">MMPRO</span>
+                  </div>
+                  <div className="flex flex-row justify-center">
+                    <Button
+                      type="submit"
+                      className="flex flex-row items-center justify-center w-48"
+                      onClick={() => withdrawEarnings()}
+                    >
+                      {withdrawLoading ? (
+                        <Spinner size={30} />
+                      ) : (
+                        <>
+                          <img src="/images/unlocked.svg" width="25" alt="" />
+                          <span className="w-32">CLAIM ALL</span>{" "}
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </Card>
 
               {flexibleStake && <Card title="Staking">
                 <div className="flex flex-col pt-8 px-2">
-                  <div className="text-center pb-4">
-                    <span className="text-lg text-gray-400">
-                      Minimum amount needed:{" "}
-                    </span>
-                    {/* <span className="text-white text-3xl">{parseInt(minStake) / 1000000000000000000}</span> */}
-                    <span className="text-white text-2xl ml-2">MMPRO</span>
-                  </div>
                   <div className="text-center pb-4">
                     <span className="text-lg text-gray-400">
                       Available amount:{" "}
@@ -449,80 +469,31 @@ const HomePage = (props) => {
                 </div>
               </Card>}
 
-              <Card title="Your Earnings">
-                <div className="flex flex-col pt-8 px-2">
-                  <div className="text-center pb-8">
-                    <span className="text-white text-5xl">
-                      {(parseFloat(totalRewards) / 1000000000000000000).toFixed(2)}
-                    </span>
-                    <span className="text-white text-2xl ml-2">MMPRO</span>
-                  </div>
-                  <div className="flex flex-row justify-center">
-                    <Button
-                      type="submit"
-                      className="flex flex-row items-center justify-center w-48"
-                      onClick={() => withdrawEarnings()}
-                    >
-                      {withdrawLoading ? (
-                        <Spinner size={30} />
-                      ) : (
-                        <>
-                          <img src="/images/unlocked.svg" width="25" alt="" />
-                          <span className="w-32">CLAIM ALL</span>{" "}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <div className="text-center text-white text-2xl mt-8 mx-2">
-                    <div>
-                      {/* <div>
-                        <span className="text-gray-400 text-lg">
-                          Staking Reward:{" "}
-                        </span>
-                        {parseFloat(stakingRewards) / 1000000000000000000} MMPRO
-                      </div>
-                      <div>
-                        <span className="text-gray-400 text-lg">
-                          Daily Return:{" "}
-                        </span>
-                        {parseFloat(dailyROI) / 100} %
-                      </div> */}
-                    </div>
-                    <div>
-                      {/* <div>
-                        <span className="text-gray-400 text-lg">
-                          Referral Reward:
-                        </span>{" "}
-                        {parseFloat(referralRewards) / 1000000000000000000} MMPRO
-                      </div>
-                      <div>
-                        <span className="text-gray-400 text-lg">
-                          Referral Count:
-                        </span>{" "}
-                        {referralCount}
-                      </div> */}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* <Card title="Unstaking">
+              <Card title="Unstaking">
                 <div className="flex flex-col pt-8 px-2">
                   <div className="text-center pb-4">
                     <span className="text-lg text-gray-400">
                       Available to unstake:{" "}
                     </span>
-                    <span className="text-white text-3xl">{(parseFloat(stakes) / 1000000000000000000).toFixed()}</span>
+                    <span className="text-white text-3xl">{(parseFloat(stakedByUser) / 1000000000000000000).toFixed(2)}</span>
                     <span className="text-white text-2xl ml-2">MMPRO</span>
                   </div>
                   <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
-                    <input
+                    <select value={optionsState} onChange={onSelectChanged} className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2">
+                      {unstakeList.map(unstake =>
+                        <option key={unstake.id} value={unstake.id}>
+                          {(parseFloat(unstake.amount) / 1000000000000000000).toFixed(2)}
+                          {/* {unstake.amount} */}
+                        </option>
+                      )};
+                    </select>
+                    {/* <input
                       type="number"
                       placeholder="MMPRO To Unstake"
                       value={unstakeAmount}
                       onChange={(e) => setUnstakeAmount(e.target.value)}
                       className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
-                    />
+                    /> */}
                     <Button
                       onClick={() => unstake()}
                       className="flex flex-row items-center w-48 justify-center"
@@ -532,13 +503,13 @@ const HomePage = (props) => {
                       ) : (
                         <>
                           <img src="/images/unlocked.svg" width="25" alt="" />
-                          <span className="w-24">UNSTAKE</span>
+                          <span className="w-36">UNSTAKE ALL</span>
                         </>
                       )}
                     </Button>
                   </div>
                 </div>
-              </Card> */}
+              </Card>
             </div>
           )}
         </div>
