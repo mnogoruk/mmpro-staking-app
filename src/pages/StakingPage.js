@@ -8,6 +8,9 @@ import FlexibleStake from "../contracts/FlexibleStake.json";
 import MMPRO from "../contracts/MMPRO.json";
 import fromExponential from "from-exponential";
 import { Link } from "react-router-dom";
+import Header from '../components/Header'
+import Footer from '../components/Footer'
+
 const HomePage = (props) => {
 
   const [loading, setLoading] = useState(false);
@@ -159,28 +162,6 @@ const HomePage = (props) => {
     }
   }
 
-  // async function updateFreeAmount() {
-  //   const freeAmount = await flexibleStake.methods.freeAmount().call();
-  //   setFreeAmount(freeAmount);
-  //   return freeAmount;
-  // }
-
-  // async function updateStakeToken() {
-  //   if (flexibleStake) {
-  //     const stakeToken = await flexibleStake.methods.stakeToken().call();
-  //     setStakeToken(stakeToken);
-  //     return stakeToken;
-  //   }
-  // }
-
-  // async function updateTotalSupply() {
-  //   if (mmPROToken) {
-  //     const totalSupply = await mmPROToken.methods.totalSupply().call();
-  //     setTotalSupply(totalSupply);
-  //     return totalSupply;
-  //   }
-  // }
-
   async function updateTotalRewards() {
     if (flexibleStake) {
       const _userStake = await flexibleStake.methods.getUserStakes(accounts[0]).call();
@@ -289,7 +270,7 @@ const HomePage = (props) => {
   }
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full overflow-hidden main-gradient">
       {showModal && (
         <Modal title="" onClose={() => setShowModal(false)}>
           <div className="text-2xl mb-2">
@@ -310,34 +291,45 @@ const HomePage = (props) => {
           </div>
         </Modal>
       )}
-      <div className="relative z-20 w-full top-0">
-        <img
-          src="/images/nosiy.png"
-          alt=""
-          className="absolute z-10 top-noisy"
-        />
-        <img
-          src="/images/nosiy.png"
-          alt=""
-          className="absolute z-10 second-noisy"
-        />
-      </div>
-
-      <div className="relative z-10 w-full top-0">
-        <div className="absolute w-full home-gradient"></div>
-      </div>
-
       <div className="relative w-full z-30">
-        {/* <Header /> */}
+        <Header />
 
         <div className="container mx-auto pb-18 px-4 force-height">
           {!accounts && (
             <div className="w-full py-6 text-center">
-              <div style={{ textAlign: "center", marginTop: "1em" }}>
+              {/* <dov className="flex flex-row justify-around"> */}
+              <div className="flex items-center justify-center flex-row w-full mb-24 mt-6">
+                <div className="text-left">
+                  <p className="text-6xl mb-2 font-semibold">Launchpad</p>
+                  <p className="text-2xl mb-2 font-light"> Connect your wallet &amp; Participate in IDO on MMPRO Launchpad. For allocation you need to have MMPRO token. </p>
+                </div>
+                <div >
+                  <div className="transparentCard">
+                    <h1> MMPRO price</h1>
+                    <div className="flex items-center justify-center flex-row">
+                      <p> 0.1321</p><h1> USD </h1>
+                    </div>
+                  </div>
+                  <div className="transparentCard">
+                    <h1> MMPRO marketcap</h1>
+                    <div className="flex items-center justify-center flex-row">
+                      <p> 13.1m</p><h1> USD </h1>
+                    </div>
+                  </div>
+                  <div className="transparentCard">
+                    <h1> MMPRO supply</h1>
+                    <div className="flex items-center justify-center flex-row">
+                      <p> 99.50m</p><h1> MMPRO </h1>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* </dov> */}
+              {/* <div style={{ textAlign: "center", marginTop: "1em" }}>
                 <div id='controls' >
                   <Link id='toggler' to='#' >Switch To Ethereum Chain</  Link>
                 </div>
-              </div>
+              </div> */}
               <Button
                 className="w-full md:w-2/5 text-2xl flex flex-row justify-center mx-auto"
                 uppercase={false}
@@ -514,7 +506,7 @@ const HomePage = (props) => {
           )}
         </div>
 
-        {/* <Footer /> */}
+        <Footer />
       </div>
     </div>
   );
