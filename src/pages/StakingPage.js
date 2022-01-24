@@ -124,12 +124,13 @@ const HomePage = (props) => {
   useEffect(() => {
     const triggerAlreadyInjectedWeb3 = async () => {
       if (window.ethereum) {
-        if (
-          window.ethereum.selectedAddress &&
-          window.ethereum.networkVersion === "1"
-        ) {
-          await init();
-        }
+        await init();
+        // if (
+        //   window.ethereum.selectedAddress &&
+        //   window.ethereum.networkVersion === "1"
+        // ) {
+        //   await init();
+        // }
       }
     };
     triggerAlreadyInjectedWeb3();
