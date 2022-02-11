@@ -41,8 +41,6 @@ header {
 .transparentCard {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 5px;
-  width: 350px;
-  margin-left: 50px;
   padding: 10px;
   margin-bottom: 10px;
   margin-top: 10px;
@@ -50,7 +48,6 @@ header {
   -webkit-box-align: center;
   align-items: center;
   -webkit-box-pack: justify;
-  justify-content: space-between;
   transition: all 0s linear 0s;
 }
 
@@ -88,12 +85,18 @@ header {
 }
 
 .main-gradient {
-  background: radial-gradient(circle, rgb(50, 187, 129) 0%, rgb(41, 128, 164) 45%, rgb(24, 25, 51) 100%);
+  background: radial-gradient(
+    circle,
+    rgb(50, 187, 129) 0%,
+    rgb(41, 128, 164) 45%,
+    rgb(24, 25, 51) 100%
+  );
   color: white;
 }
 
 .home-gradient {
-  background: transparent linear-gradient(180deg, #12072b 0%, #cc1962 100%) 0% 0% no-repeat padding-box;
+  background: transparent linear-gradient(180deg, #12072b 0%, #cc1962 100%) 0%
+    0% no-repeat padding-box;
   opacity: 1;
   height: 8000px;
 }
@@ -215,7 +218,7 @@ header {
 }
 
 #toggler {
-  color: #D01961;
+  color: #d01961;
   font-size: 24px;
   background-color: white;
   margin: 12px;
@@ -226,13 +229,13 @@ header {
 #toggler :active {
   color: white;
   font-size: 24px;
-  background-color: #D01961;
+  background-color: #d01961;
   margin: 12px;
   padding: 4px 32px;
   border-radius: 5px;
 }
 
 #controls {
-  margin: 32px
+  margin: 32px;
 }
 @tailwind utilities;
