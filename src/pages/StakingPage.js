@@ -339,7 +339,33 @@ const HomePage = (props) => {
           .send({ from: accounts[0] });
       }
       await flexibleStakeContract.methods
-        .stake(curStakeTokenInfo["addr"], amount)
+        .stake(curStakeTokenInfo["addr"], arg)
+        .send({ from: accounts[0] });
+      await updateAll();
+    } catch (err) {
+      if (err.code !== 4001) {
+        setShowModal(true);
+      }
+      console.error(err);
+    }
+    setStakeLoading(false);
+  }
+
+  async function fixedStake() {
+    setStakeLoading(true);
+    const actual = amount * 10 ** 18;
+    const arg = fromExponential(actual);
+    try {
+      const allowance = await curStakeTokenContract.methods
+        .allowance(accounts[0], getFlexibleStakingAddress())
+        .call();
+      if (allowance === "0") {
+        await curStakeTokenContract.methods
+          .approve(getFlexibleStakingAddress(), arg)
+          .send({ from: accounts[0] });
+      }
+      await flexibleStakeContract.methods
+        .stake(curStakeTokenInfo["addr"], arg, fixedStakingOption)
         .send({ from: accounts[0] });
       await updateAll();
     } catch (err) {
@@ -428,6 +454,26 @@ const HomePage = (props) => {
 
   const onStakeOptionSelectChanged = (e) => {
     setStakingOptionState(e.target.value);
+  };
+
+  const cAPY = (dailyVolumes) => {
+    const lastVolume = dailyVolumes.pop();
+    if (lastVolume) {
+      let sum = 0;
+
+      dailyVolumes.forEach((dailyVolume) => {
+        sum += +dailyVolume.split(".")[0];
+      });
+
+      const fee = sum * 0.25;
+      const avg = fee / dailyVolumes.length;
+      const apr = avg / +lastVolume.split(".")[0];
+      const apy = (((1 + apr) ** 12 - 1) / 100).toFixed(2);
+      if (!Number.isNaN(+apy)) {
+        return +apy >= 1000 ? ">1000%" : `${apy}%`;
+      }
+    }
+    return "0%";
   };
 
   useEffect(() => {
@@ -945,7 +991,7 @@ const HomePage = (props) => {
                             className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
                           />
                           <Button
-                            onClick={() => stake()}
+                            onClick={() => fixedStake()}
                             className="flex flex-row items-center w-96 justify-center"
                           >
                             {stakeLoading ? (
