@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useEffect, useState } from "react";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
@@ -16,6 +17,7 @@ import {
   getFlexibleStakingAddress,
   getFixedStakingAddress,
   getMMProAddress,
+  getBUSDAddress,
 } from "../utils/getAddress";
 // import { Box, TabsContext, TabList, TabPanel, Tab } from "@mui/material";
 
@@ -23,13 +25,13 @@ const stakeTokenDataList = [
   {
     name: "MMPro",
     abi: MMPRO.abi,
-    addr: "0xa8892B044eCE158cb4869B59F1972Fa01Aae6D2E",
+    addr: getMMProAddress(),
     img: "/images/mmpro.png",
   },
   {
     name: "Busd",
     abi: BUSD.abi,
-    addr: "0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7",
+    addr: getBUSDAddress(),
     img: "/images/busd.png",
   },
 ];
@@ -52,7 +54,7 @@ const HomePage = (props) => {
   const [wishStakeContractList, setWishStakeContractList] = useState(Array);
 
   const [balance, setBalance] = useState(0);
-  const [totalStaked, setTotalStaked] = useState();
+  const [totalStaked, setTotalStaked] = useState(0);
   const [stakedByUser, setStakedByUser] = useState(0);
   const [unstakeList, setUnstakeList] = useState([]);
   // const [unstakeAmount, setUnstakeAmount] = useState(0);
@@ -67,6 +69,9 @@ const HomePage = (props) => {
   const [tabIndex, setTabIndex] = useState(1);
   const [fixedStakingOption, setFixedStakingOption] = useState(Array);
   const [stakingOptionState, setStakingOptionState] = useState(0);
+  const [apy, setAPY] = useState("");
+  const [flexibleAPY, setFlexibleAPY] = useState(Array);
+  const [initializing, setInitializing] = useState(false);
 
   const init = async () => {
     if (isReady()) {
@@ -84,8 +89,8 @@ const HomePage = (props) => {
     }
 
     const networkId = await web3.eth.net.getId();
-    if (networkId !== 97) {
-      setError("Please connect BSC Testnet account");
+    if (networkId !== 56) {
+      setError("Please connect BSC Network");
       setLoading(false);
       return;
     }
@@ -114,6 +119,11 @@ const HomePage = (props) => {
           .tokenStakeInfo(stakeTokenDataList[i]["addr"])
           .call()
       )[2];
+      stakeTokenInfo["emission"] = (
+        await tempflexibleStakeContract.methods
+          .tokenStakeInfo(stakeTokenDataList[i]["addr"])
+          .call()
+      )[1];
       tempStakeList.push({ ...stakeTokenInfo, id: i });
     }
 
@@ -121,6 +131,18 @@ const HomePage = (props) => {
       FixedStake.abi,
       getFixedStakingAddress()
     );
+
+    const apy = cAPY(amount, 5000);
+    setAPY(apy);
+    let tempAPY = [];
+    debugger;
+    tempStakeList.forEach((stake, index) => {
+      const apy = cAPY(amount, stake["emission"]);
+      tempAPY.push({ id: index, APY: apy });
+      console.log(stake, stake["emission"], apy);
+    });
+    setFlexibleAPY(tempAPY);
+
     setWeb3(web3);
     setStakeTokenBoxList(tempStakeList);
     setAccounts(await web3.eth.getAccounts());
@@ -134,6 +156,7 @@ const HomePage = (props) => {
     const tmpBalance = await wishStakeContractList[curStakeTokenID].methods
       .balanceOf(accounts[0])
       .call();
+    console.log(curStakeTokenID, tmpBalance);
     const stakedByUserArray = await flexibleStakeContract.methods
       .getUserStakes(accounts[0])
       .call();
@@ -161,7 +184,7 @@ const HomePage = (props) => {
     // setStakeToken(stakeToken);
     // setBalance(balance);
     // setTotalStaked(totalStaked);
-    setBalance(tmpBalance);
+    setBalance(BigInt(tmpBalance));
     setStakedByUser(sumOfStaked);
     setTotalRewards(sumTotalRewards);
     setUnstakeList(unstakeLists);
@@ -177,6 +200,7 @@ const HomePage = (props) => {
   };
 
   const initFixedBalance = async () => {
+    debugger;
     const tmpFixedStakeOptinos = await fixedStakeContract.methods
       .getStakeOptions(getMMProAddress())
       .call();
@@ -235,6 +259,7 @@ const HomePage = (props) => {
   async function updateStakedByUser() {
     var sumOfStaked = 0;
     var stakedByUserArray;
+    const tmpStakeTokenID = tabIndex === 1 ? curStakeTokenID : 0;
     if (tabIndex === 1) {
       stakedByUserArray = await flexibleStakeContract.methods
         .getUserStakes(accounts[0])
@@ -247,7 +272,7 @@ const HomePage = (props) => {
     for (var i = 0; i < stakedByUserArray.length; i++) {
       if (
         stakedByUserArray[i].stakeToken ===
-        stakeTokenBoxList[curStakeTokenID].addr
+        stakeTokenBoxList[tmpStakeTokenID].addr
       ) {
         sumOfStaked += parseInt(stakedByUserArray[i].amount);
       }
@@ -282,7 +307,7 @@ const HomePage = (props) => {
       stakedByUserArray = await fixedStakeContract.methods
         .getUserStakes(accounts[0])
         .call();
-      for (var i = 0; i < stakedByUserArray.length; i++) {
+      for (i = 0; i < stakedByUserArray.length; i++) {
         sumTotalRewards =
           parseInt(sumTotalRewards) + parseInt(stakedByUserArray[i].rewards);
 
@@ -300,16 +325,15 @@ const HomePage = (props) => {
 
   async function updateAccountBalance() {
     var balance;
-    if (curStakeTokenContract && tabIndex === 1) {
-      balance = await curStakeTokenContract.methods
-        .balanceOf(accounts[0])
-        .call();
+    const tmpContract = wishStakeContractList[curStakeTokenID];
+    if (tmpContract && tabIndex === 1) {
+      balance = await tmpContract.methods.balanceOf(accounts[0]).call();
     } else if (tabIndex === 2) {
       balance = await wishStakeContractList[0].methods
         .balanceOf(accounts[0])
         .call();
     }
-    setBalance(balance);
+    setBalance(BigInt(balance));
     return balance;
   }
 
@@ -320,7 +344,7 @@ const HomePage = (props) => {
           .tokenStakeInfo(stakeTokenBoxList[curStakeTokenID]["addr"])
           .call()
       )[2];
-      setTotalStaked(totalStaked);
+      setTotalStaked(BigInt(totalStaked));
       return totalStaked;
     }
   }
@@ -333,11 +357,20 @@ const HomePage = (props) => {
       const allowance = await curStakeTokenContract.methods
         .allowance(accounts[0], getFlexibleStakingAddress())
         .call();
-      if (allowance === "0") {
+      if (BigInt(allowance) < BigInt(arg)) {
         await curStakeTokenContract.methods
           .approve(getFlexibleStakingAddress(), arg)
           .send({ from: accounts[0] });
       }
+      console.log(
+        allowance,
+        arg,
+        BigInt(allowance) < BigInt(arg),
+        flexibleStakeContract,
+        curStakeTokenInfo["addr"],
+        arg,
+        accounts[0]
+      );
       await flexibleStakeContract.methods
         .stake(curStakeTokenInfo["addr"], arg)
         .send({ from: accounts[0] });
@@ -352,20 +385,22 @@ const HomePage = (props) => {
   }
 
   async function fixedStake() {
+    debugger;
     setStakeLoading(true);
     const actual = amount * 10 ** 18;
     const arg = fromExponential(actual);
     try {
-      const allowance = await curStakeTokenContract.methods
-        .allowance(accounts[0], getFlexibleStakingAddress())
+      const allowance = await wishStakeContractList[0].methods
+        .allowance(accounts[0], getFixedStakingAddress())
         .call();
-      if (allowance === "0") {
-        await curStakeTokenContract.methods
-          .approve(getFlexibleStakingAddress(), arg)
+      if (allowance < arg) {
+        await wishStakeContractList[0].methods
+          .approve(getFixedStakingAddress(), arg)
           .send({ from: accounts[0] });
       }
-      await flexibleStakeContract.methods
-        .stake(curStakeTokenInfo["addr"], arg, fixedStakingOption)
+      console.log(fixedStakeContract);
+      await fixedStakeContract.methods
+        .stake(stakeTokenBoxList[0].addr, arg, stakingOptionState)
         .send({ from: accounts[0] });
       await updateAll();
     } catch (err) {
@@ -427,6 +462,7 @@ const HomePage = (props) => {
       }
     } else if (tabIndex === 2) {
       try {
+        debugger;
         const length = unstakeList.length;
         for (var i = 0; i < length; i++) {
           await fixedStakeContract.methods
@@ -456,28 +492,21 @@ const HomePage = (props) => {
     setStakingOptionState(e.target.value);
   };
 
-  const cAPY = (dailyVolumes) => {
-    const lastVolume = dailyVolumes.pop();
-    if (lastVolume) {
-      let sum = 0;
-
-      dailyVolumes.forEach((dailyVolume) => {
-        sum += +dailyVolume.split(".")[0];
-      });
-
-      const fee = sum * 0.25;
-      const avg = fee / dailyVolumes.length;
-      const apr = avg / +lastVolume.split(".")[0];
-      const apy = (((1 + apr) ** 12 - 1) / 100).toFixed(2);
-      if (!Number.isNaN(+apy)) {
-        return +apy >= 1000 ? ">1000%" : `${apy}%`;
-      }
+  const cAPY = (amount, emission) => {
+    if (totalStaked && amount) {
+      const shareRate = BigInt(amount * 100) / (totalStaked + BigInt(amount));
+      const currentRewardsPerday =
+        (BigInt(shareRate) * BigInt(emission)) / BigInt(100);
+      const estAnnualRewards = BigInt(currentRewardsPerday) * BigInt(365);
+      const apy = (BigInt(estAnnualRewards) * BigInt(100)) / BigInt(amount);
+      return apy.toString() + "%";
     }
     return "0%";
   };
 
   useEffect(() => {
     const initData = async () => {
+      setInitializing(true);
       if (isReady()) {
         setInitLoading(true);
         if (curStakeTokenID !== -1) {
@@ -491,8 +520,10 @@ const HomePage = (props) => {
           await initFixedBalance();
           await updateAll();
         }
+        initAPY();
         setInitLoading(false);
       }
+      setInitializing(false);
     };
     initData();
   }, [curStakeTokenID, tabIndex, web3, accounts]);
@@ -508,6 +539,20 @@ const HomePage = (props) => {
   //   init();
   // }, [tabIndex]);
 
+  function initAPY() {
+    debugger;
+    const apy = cAPY(amount, 5000);
+    setAPY(apy);
+    let tempAPY = [];
+    console.log(stakeTokenBoxList);
+    stakeTokenBoxList.forEach((stake, index) => {
+      const apy = cAPY(amount, stake["emission"]);
+      tempAPY.push({ id: index, APY: apy });
+      console.log(stake, stake["emission"], apy);
+    });
+    setFlexibleAPY(tempAPY);
+  }
+
   useEffect(() => {
     const triggerAlreadyInjectedWeb3 = async () => {
       if (window.ethereum) {
@@ -516,7 +561,11 @@ const HomePage = (props) => {
     };
     triggerAlreadyInjectedWeb3();
   }, []);
-  console.log(fixedStakingOption);
+
+  useEffect(() => {
+    initAPY();
+  }, [amount]);
+
   return (
     <div className="w-full overflow-hidden main-gradient">
       {showModal && (
@@ -654,7 +703,9 @@ const HomePage = (props) => {
                           : "text-sm text-white py-3 flex items-center mr-12 hover:text-primary cursor-pointer"
                       }
                     >
-                      <div className="flex items-center mb-3">Fixed Stake</div>
+                      <div className="flex items-center mb-3">
+                        Fixed Stake (APY = {apy})
+                      </div>
                       {tabIndex === 2 && (
                         <div className="w-full h-1 bg-primary rounded-t-md" />
                       )}
@@ -665,7 +716,8 @@ const HomePage = (props) => {
               <div className="transparentCard justify-center">
                 {stakeTokenBoxList.length > 0 &&
                   curStakeTokenID === -1 &&
-                  tabIndex === 1 && (
+                  tabIndex === 1 &&
+                  !initializing && (
                     <div className="grid grid-col-1 gap-6 w-full">
                       {/* className="transparentCard justify-between w-auto mx-12" */}
                       <div className="text-center">
@@ -680,20 +732,26 @@ const HomePage = (props) => {
                             <div className="flex justify-start">
                               <img
                                 src={stakeTokenBox["img"]}
-                                width="40"
+                                width="60"
                                 alt={stakeTokenBox["name"]}
                               />
                               <div className="flex flex-col mx-4">
                                 <div className="flex flex-row justify-between">
-                                  <div>Name: </div>
                                   <div className="font-extrabold">
                                     {stakeTokenBox["name"]}
                                   </div>
                                 </div>
                                 <div className="flex flex-row justify-between">
                                   <div>TVL: </div>
+                                  <div className="font-black">
+                                    {stakeTokenBox["TVL"] / 1000000000000000000}{" "}
+                                    {stakeTokenBox["name"]}
+                                  </div>
+                                </div>
+                                <div className="flex flex-row justify-between">
+                                  <div>APY: </div>
                                   <div className="font-extrabold">
-                                    {stakeTokenBox["TVL"]} USD
+                                    {flexibleAPY[index]["APY"]}
                                   </div>
                                 </div>
                               </div>
@@ -708,7 +766,8 @@ const HomePage = (props) => {
                   )}
                 {curStakeTokenID !== -1 &&
                   initLoading === false &&
-                  tabIndex === 1 && (
+                  tabIndex === 1 &&
+                  !initializing && (
                     <div className="grid grid-col-1 md:grid-cols-2 gap-6 mt-10 w-full">
                       <Card title="Your / Total Staked MMPRO">
                         <div className="flex flex-col pt-8 pb-4 text-white">
@@ -717,7 +776,10 @@ const HomePage = (props) => {
                               Yours
                             </span>
                             <span className="text-white text-5xl">
-                              {parseFloat(stakedByUser).toFixed(2)}
+                              {parseFloat(
+                                BigInt(stakedByUser) /
+                                  BigInt(1000000000000000000)
+                              ).toFixed(2)}
                             </span>
                             <span className="text-white text-2xl ml-2">
                               MMPRO
@@ -727,17 +789,20 @@ const HomePage = (props) => {
                               Total
                             </span>
                             <span className="text-white text-5xl">
-                              {parseFloat(totalStaked).toFixed(2)}
+                              {parseFloat(
+                                BigInt(totalStaked) /
+                                  BigInt(1000000000000000000)
+                              ).toFixed(2)}
                             </span>
                             <span className="text-white text-2xl ml-2">
                               MMPRO
                             </span>
                           </div>
                           <div className="text-center">
-                            {(
-                              parseFloat(
-                                parseFloat(totalStaked) / parseFloat(balance)
-                              ) * 100
+                            {parseFloat(
+                              (parseFloat(totalStaked) /
+                                parseFloat(balance.toString())) *
+                                parseInt(100)
                             ).toFixed(5)}
                             %
                           </div>
@@ -787,9 +852,9 @@ const HomePage = (props) => {
                               Available amount:{" "}
                             </span>
                             <span className="text-white text-3xl">
-                              {parseInt(
-                                parseInt(balance) / 1000000000000000000
-                              )}
+                              {BigInt(
+                                BigInt(balance) / BigInt(1000000000000000000)
+                              ).toString()}
                             </span>
                             <span className="text-white text-2xl ml-2">
                               MMPRO
@@ -847,7 +912,9 @@ const HomePage = (props) => {
                             >
                               {unstakeList.map((unstake) => (
                                 <option key={unstake.id} value={unstake.id}>
-                                  {parseFloat(unstake.amount).toFixed(2)}
+                                  {parseFloat(
+                                    unstake.amount / 1000000000000000000
+                                  )}
                                   {/* {unstake.amount} */}
                                 </option>
                               ))}
@@ -891,7 +958,9 @@ const HomePage = (props) => {
                             Yours
                           </span>
                           <span className="text-white text-5xl">
-                            {parseFloat(stakedByUser).toFixed(2)}
+                            {parseFloat(
+                              BigInt(stakedByUser) / BigInt(1000000000000000000)
+                            ).toFixed(2)}
                           </span>
                           <span className="text-white text-2xl ml-2">
                             MMPRO
@@ -961,7 +1030,9 @@ const HomePage = (props) => {
                             Available amount:{" "}
                           </span>
                           <span className="text-white text-3xl">
-                            {parseInt(parseInt(balance) / 1000000000000000000)}
+                            {parseInt(
+                              BigInt(balance) / BigInt(1000000000000000000)
+                            )}
                           </span>
                           <span className="text-white text-2xl ml-2">
                             MMPRO
@@ -976,7 +1047,7 @@ const HomePage = (props) => {
                             {fixedStakingOption.map((option, index) => (
                               <option key={index} value={index}>
                                 Option {index + 1} :
-                                {parseFloat(option.periodInDays).toFixed(2)}
+                                {parseFloat(option.periodInDays)}
                               </option>
                             ))}
                             ;
@@ -1034,7 +1105,9 @@ const HomePage = (props) => {
                           >
                             {unstakeList.map((unstake) => (
                               <option key={unstake.id} value={unstake.id}>
-                                {parseFloat(unstake.amount).toFixed(2)}
+                                {parseFloat(
+                                  unstake.amount / 1000000000000000000
+                                ).toFixed(2)}
                                 {/* {unstake.amount} */}
                               </option>
                             ))}

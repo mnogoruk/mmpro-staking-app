@@ -1,5 +1,5 @@
 const getRpcUrl = () => {
-    return 'https://data-seed-prebsc-1-s1.binance.org:8545/'
-}
+  return "https://bsc-dataseed.binance.org/";
+};
 
-export default getRpcUrl
+export default getRpcUrl;

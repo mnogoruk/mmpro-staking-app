@@ -1,15 +1,15 @@
 export const getFlexibleStakingAddress = () => {
-  return "0xb30578c103Aa44450dE021C87083Dbd8e96102A2";
+  return "0x5450eaE65710b5fE19E5e20CFDeA9b9feb63fa1b";
 };
 
 export const getFixedStakingAddress = () => {
-  return "0x99EC000A191f93EE772cBDA0c7440Cf4847781E0";
+  return "0x1eDdc700755165438FAD7181AF92eE8Fb816Cd87";
 };
 
 export const getBUSDAddress = () => {
-  return "0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7";
+  return "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56";
 };
 
 export const getMMProAddress = () => {
-  return "0xa8892B044eCE158cb4869B59F1972Fa01Aae6D2E";
+  return "0x6067490d05F3cF2fdFFC0e353b1f5Fd6E5CCDF70";
 };
