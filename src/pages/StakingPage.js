@@ -19,6 +19,7 @@ import {
   getMMProAddress,
   getBUSDAddress,
 } from "../utils/getAddress";
+import { useWeb3React } from "@web3-react/core";
 // import { Box, TabsContext, TabList, TabPanel, Tab } from "@mui/material";
 
 const stakeTokenDataList = [
@@ -36,6 +37,7 @@ const stakeTokenDataList = [
   },
 ];
 const HomePage = (props) => {
+  const { account, active } = useWeb3React();
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(false);
   const [stakeLoading, setStakeLoading] = useState(false);
@@ -554,20 +556,20 @@ const HomePage = (props) => {
   }
 
   useEffect(() => {
-    const triggerAlreadyInjectedWeb3 = async () => {
-      if (window.ethereum) {
+    const initialize = async (active) => {
+      if (active) {
         await init();
       }
     };
-    triggerAlreadyInjectedWeb3();
-  }, []);
+    initialize(active);
+  }, [account, active]);
 
   useEffect(() => {
     initAPY();
   }, [amount]);
 
   return (
-    <div className="w-full overflow-hidden main-gradient">
+    <div style={{ minHeight: "500px" }}>
       {showModal && (
         <Modal title="" onClose={() => setShowModal(false)}>
           <div className="text-2xl mb-2">
@@ -592,10 +594,8 @@ const HomePage = (props) => {
         </Modal>
       )}
       <div className="relative w-full z-30">
-        <Header />
-
         <div className="container mx-auto pb-18 px-4 force-height">
-          {!accounts && (
+          {!active && (
             <div className="w-full py-6 text-center">
               {/* <dov className="flex flex-row justify-around"> */}
               <div className="flex items-center justify-center flex-row w-full mb-24 mt-6">
@@ -631,14 +631,14 @@ const HomePage = (props) => {
                   </div>
                 </div>
               </div>
-              <Button
+              {/* <Button
                 className="w-full md:w-2/5 text-2xl flex flex-row justify-center mx-auto"
                 uppercase={false}
                 onClick={async () => await init()}
               >
                 {loading && <Spinner color="white" size={40} />}
                 {!loading && (error !== "" ? error : "CONNECT METAMASK WALLET")}
-              </Button>
+              </Button> */}
 
               <div className="text-white text-center mt-6 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold">
                 <h1>Stake Your Token</h1>
@@ -672,7 +672,7 @@ const HomePage = (props) => {
               </TabList>
             </TabsContext>
           </Box> */}
-          {accounts && (
+          {active && (
             <>
               <div>
                 <div
@@ -1151,8 +1151,6 @@ const HomePage = (props) => {
             </>
           )}
         </div>
-
-        <Footer />
       </div>
     </div>
   );

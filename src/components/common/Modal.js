@@ -34,9 +34,8 @@ const Modal = ({ children, onClose, title }) => {
         }}
       >
         <div className="flex flex-row items-center">
-          <div className="text-3xl font-bold">{title}</div>
+          <div className="text-3xl font-bold text-black">{title}</div>
         </div>
-
         {children}
       </div>
     </div>
