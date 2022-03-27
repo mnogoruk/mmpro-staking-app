@@ -79,8 +79,6 @@ const HomePage = (props) => {
     if (isReady()) {
       return;
     }
-
-    setLoading(true);
     var web3;
     try {
       web3 = await initWeb3();
@@ -151,7 +149,6 @@ const HomePage = (props) => {
     setWishStakeContractList(tempWishStakeList);
     setFlexibleStakeContract(tempflexibleStakeContract);
     setFixedStakeContract(tempfixedStakeContract);
-    setLoading(false);
   };
 
   const initFlexibleBalance = async () => {
@@ -557,9 +554,11 @@ const HomePage = (props) => {
 
   useEffect(() => {
     const initialize = async (active) => {
+      setLoading(true);
       if (active) {
         await init();
       }
+      setLoading(false);
     };
     initialize(active);
   }, [account, active]);
@@ -569,7 +568,7 @@ const HomePage = (props) => {
   }, [amount]);
 
   return (
-    <div style={{ minHeight: "500px" }}>
+    <div style={{ minHeight: "1000px" }}>
       {showModal && (
         <Modal title="" onClose={() => setShowModal(false)}>
           <div className="text-2xl mb-2">
@@ -598,7 +597,7 @@ const HomePage = (props) => {
           {!active && (
             <div className="w-full py-6 text-center">
               {/* <dov className="flex flex-row justify-around"> */}
-              <div className="flex items-center justify-center flex-row w-full mb-24 mt-6">
+              <div className="flex items-center justify-center md:flex-row w-full mb-24 mt-6 flex-col">
                 <div className="text-left">
                   <p className="text-6xl mb-2 font-semibold">Launchpad</p>
                   <p className="text-2xl mb-2 font-light">
@@ -608,21 +607,21 @@ const HomePage = (props) => {
                   </p>
                 </div>
                 <div>
-                  <div className="transparentCard justify-between w-80 ml-13">
+                  <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO price</h1>
                     <div className="flex items-center justify-center flex-row">
                       <p> 0.1321</p>
                       <h1> USD </h1>
                     </div>
                   </div>
-                  <div className="transparentCard justify-between w-80 ml-13">
+                  <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO marketcap</h1>
                     <div className="flex items-center justify-center flex-row">
                       <p> 13.1m</p>
                       <h1> USD </h1>
                     </div>
                   </div>
-                  <div className="transparentCard justify-between w-80 ml-13">
+                  <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO supply</h1>
                     <div className="flex items-center justify-center flex-row">
                       <p> 99.50m</p>
@@ -672,20 +671,25 @@ const HomePage = (props) => {
               </TabList>
             </TabsContext>
           </Box> */}
-          {active && (
+          {active && loading && (
+            <div className="flex justify-center">
+              <Spinner size={50} />
+            </div>
+          )}
+          {active && !loading && (
             <>
               <div>
                 <div
-                  className="xl:w-full xl:mx-0 h-12 hidden sm:block my-4 shadow rounded font-bold"
+                  className="w-full mx-0 h-12 my-4 shadow rounded font-bold"
                   style={{ background: "rgba(255, 255, 255, 0.15)" }}
                 >
-                  <ul className="flex border-b px-5">
+                  <ul className="flex border-b md:px-5">
                     <li
                       onClick={() => setTabIndex(1)}
                       className={
                         tabIndex === 1
-                          ? "text-sm border-primary pt-3 rounded-t text-primary mr-12 cursor-default"
-                          : "text-sm text-white py-3 flex items-center mr-12 hover:text-primary cursor-pointer"
+                          ? "text-sm border-primary pt-3 rounded-t text-primary md:mr-12 mr-1 cursor-default"
+                          : "text-sm text-white py-3 flex items-center md:mr-12 mr-1 hover:text-primary cursor-pointer"
                       }
                     >
                       <div className="flex items-center mb-3">
@@ -699,12 +703,12 @@ const HomePage = (props) => {
                       onClick={() => setTabIndex(2)}
                       className={
                         tabIndex === 2
-                          ? "text-sm border-primary pt-3 rounded-t text-primary mr-12 cursor-default"
-                          : "text-sm text-white py-3 flex items-center mr-12 hover:text-primary cursor-pointer"
+                          ? "text-sm border-primary pt-3 rounded-t text-primary md:mr-12 mr-1 cursor-default"
+                          : "text-sm text-white py-3 flex items-center md:mr-12 mr-1 hover:text-primary cursor-pointer"
                       }
                     >
                       <div className="flex items-center mb-3">
-                        Fixed Stake (APY = {apy})
+                        Fixed Stake ({apy})
                       </div>
                       {tabIndex === 2 && (
                         <div className="w-full h-1 bg-primary rounded-t-md" />
@@ -718,7 +722,7 @@ const HomePage = (props) => {
                   curStakeTokenID === -1 &&
                   tabIndex === 1 &&
                   !initializing && (
-                    <div className="grid grid-col-1 gap-6 w-full">
+                    <div className="grid grid-col-1 md:gap-6 gap-2 w-full">
                       {/* className="transparentCard justify-between w-auto mx-12" */}
                       <div className="text-center">
                         <span className="text-white text-2xl">
@@ -727,7 +731,7 @@ const HomePage = (props) => {
                         {stakeTokenBoxList.map((stakeTokenBox, index) => (
                           <div
                             key={index}
-                            className="flex justify-between w-auto mx-12 my-2 rounded-lg card-bg py-4 px-8"
+                            className="flex justify-between w-auto md:mx-12 mx-1 my-2 rounded-lg card-bg py-4 md:px-8 px-1"
                           >
                             <div className="flex justify-start">
                               <img
@@ -735,7 +739,7 @@ const HomePage = (props) => {
                                 width="60"
                                 alt={stakeTokenBox["name"]}
                               />
-                              <div className="flex flex-col mx-4">
+                              <div className="flex flex-col md:mx-4 mx-1">
                                 <div className="flex flex-row justify-between">
                                   <div className="font-extrabold">
                                     {stakeTokenBox["name"]}
@@ -744,8 +748,7 @@ const HomePage = (props) => {
                                 <div className="flex flex-row justify-between">
                                   <div>TVL: </div>
                                   <div className="font-black">
-                                    {stakeTokenBox["TVL"] / 1000000000000000000}{" "}
-                                    {stakeTokenBox["name"]}
+                                    {stakeTokenBox["TVL"] / 1000000000000000000}
                                   </div>
                                 </div>
                                 <div className="flex flex-row justify-between">
@@ -870,7 +873,7 @@ const HomePage = (props) => {
                             />
                             <Button
                               onClick={() => stake()}
-                              className="flex flex-row items-center w-96 justify-center"
+                              className="flex flex-row items-center justify-center"
                             >
                               {stakeLoading ? (
                                 <Spinner size={30} />
@@ -1063,7 +1066,7 @@ const HomePage = (props) => {
                           />
                           <Button
                             onClick={() => fixedStake()}
-                            className="flex flex-row items-center w-96 justify-center"
+                            className="flex flex-row items-center justify-center"
                           >
                             {stakeLoading ? (
                               <Spinner size={30} />

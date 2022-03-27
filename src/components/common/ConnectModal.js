@@ -9,19 +9,12 @@ export default function ConnectModal(props) {
   const { opened, closeHandle, setError } = props;
 
   useEffect(() => {
-    setError(parseInt(process.env.REACT_APP_CHAIN_ID) !== chainId && active);
+    setError(56 !== chainId && active);
     if (error && error.toString().indexOf("UnsupportedChainIdError") > -1) {
       console.log("switch");
       switchNetwork();
     }
   }, [active, chainId, error]);
-
-  console.log(
-    active,
-    chainId,
-    parseInt(process.env.REACT_APP_CHAIN_ID),
-    parseInt(process.env.REACT_APP_CHAIN_ID) !== chainId && active
-  );
 
   return (
     <>
