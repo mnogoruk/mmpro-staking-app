@@ -1,15 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-undef */
 import React, { useState, useEffect } from "react";
-import Button from "../components/common/Button";
-import FlexibleStake from "../contracts/FlexibleStake.json";
 import MMPRO from "../contracts/MMPRO.json";
 import BUSD from "../contracts/Busd.json";
-import {
-  getFlexibleStakingAddress,
-  getFixedStakingAddress,
-  getMMProAddress,
-  getBUSDAddress,
-} from "../utils/getAddress";
+import { getMMProAddress, getBUSDAddress } from "../utils/getAddress";
 import { useFlexibleStaking } from "../hooks/useContracts";
 import { useWeb3React } from "@web3-react/core";
 import SelectFlexibleToken from "./SelectFlexibleToken";
@@ -36,8 +30,7 @@ export default function FlexibleLayout() {
   const [initLoading, setInitLoading] = useState(false);
   const [stakeTokenBoxList, setStakeTokenBoxList] = useState(Array);
   const [flexibleAPY, setFlexibleAPY] = useState(Array);
-  const [totalStaked, setTotalStaked] = useState(0);
-  const [amount, setAmount] = useState(0);
+  // const [amount, setAmount] = useState(0);
   const [curStakeTokenID, setCurStakeTokenID] = useState(-1);
 
   const cAPY = async (index, amount, emission) => {

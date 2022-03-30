@@ -1,54 +1,51 @@
 /* eslint-disable no-undef */
-import React, { useState } from "react";
-import Card from "../components/common/Card";
-import Button from "../components/common/Button";
-import Spinner from "../components/common/Spinner";
-import { useWeb3React } from "@web3-react/core";
-import { useFlexibleStaking } from "../hooks/useContracts";
+import React from "react";
+// import { useWeb3React } from "@web3-react/core";
+// import { useFlexibleStaking } from "../hooks/useContracts";
 
 export default function FlexibleStaking(props) {
-  const { amount, setAmount, selectedTokenContract, selectedTokenAddr } = props;
-  const { account } = useWeb3React();
-  const flexibleContract = useFlexibleStaking();
+  // const { selectedTokenContract, selectedTokenAddr } = props;
+  // const { account } = useWeb3React();
+  // const flexibleContract = useFlexibleStaking();
 
-  const [balance, setBalance] = useState(0);
-  const [stakedByUser, setStakedByUser] = useState(0);
-  const [totalRewards, setTotalRewards] = useState(0);
-  const [unstakeList, setUnstakeList] = useState();
-  const [totalStaked, setTotalStaked] = useState(0);
+  // const [balance, setBalance] = useState(0);
+  // const [stakedByUser, setStakedByUser] = useState(0);
+  // const [totalRewards, setTotalRewards] = useState(0);
+  // const [unstakeList, setUnstakeList] = useState();
+  // const [totalStaked, setTotalStaked] = useState(0);
 
-  const initFlexibleBalance = async () => {
-    const tmpBalance = await selectedTokenContract.methods
-      .balanceOf(account)
-      .call();
-    const stakedByUserArray = await flexibleContract.methods
-      .getUserStakes(account)
-      .call();
-    const totalStaked = await flexibleContract.methods
-      .tokenStakeInfo(selectedTokenAddr)
-      .call()[2];
+  // const initFlexibleBalance = async () => {
+  //   const tmpBalance = await selectedTokenContract.methods
+  //     .balanceOf(account)
+  //     .call();
+  //   const stakedByUserArray = await flexibleContract.methods
+  //     .getUserStakes(account)
+  //     .call();
+  //   const totalStaked = await flexibleContract.methods
+  //     .tokenStakeInfo(selectedTokenAddr)
+  //     .call()[2];
 
-    var sumOfStaked = 0;
-    var unstakeLists = [];
-    var sumTotalRewards = 0;
-    for (var i = 0; i < stakedByUserArray.length; i++) {
-      const rewards = await flexibleContract.methods
-        .calcRewardsByIndex(account, i)
-        .call();
-      sumTotalRewards += parseInt(rewards);
-      if (stakedByUserArray[i].amount > 0) {
-        unstakeLists.push({ id: i, amount: stakedByUserArray[i].amount });
-      }
-      if (stakedByUserArray[i].stakeToken === selectedTokenAddr) {
-        sumOfStaked += parseInt(stakedByUserArray[i].amount);
-      }
-    }
-    setTotalStaked(totalStaked);
-    setBalance(BigInt(tmpBalance));
-    setStakedByUser(sumOfStaked);
-    setTotalRewards(sumTotalRewards);
-    setUnstakeList(unstakeLists);
-  };
+  //   var sumOfStaked = 0;
+  //   var unstakeLists = [];
+  //   var sumTotalRewards = 0;
+  //   for (var i = 0; i < stakedByUserArray.length; i++) {
+  //     const rewards = await flexibleContract.methods
+  //       .calcRewardsByIndex(account, i)
+  //       .call();
+  //     sumTotalRewards += parseInt(rewards);
+  //     if (stakedByUserArray[i].amount > 0) {
+  //       unstakeLists.push({ id: i, amount: stakedByUserArray[i].amount });
+  //     }
+  //     if (stakedByUserArray[i].stakeToken === selectedTokenAddr) {
+  //       sumOfStaked += parseInt(stakedByUserArray[i].amount);
+  //     }
+  //   }
+  //   setTotalStaked(totalStaked);
+  //   setBalance(BigInt(tmpBalance));
+  //   setStakedByUser(sumOfStaked);
+  //   setTotalRewards(sumTotalRewards);
+  //   setUnstakeList(unstakeLists);
+  // };
   return (
     <>
       Upgrading

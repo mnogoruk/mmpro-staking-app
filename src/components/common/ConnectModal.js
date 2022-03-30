@@ -1,19 +1,21 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from "react";
 import Modal from "./Modal";
 import { useWeb3React } from "@web3-react/core";
-import { injected, walletconnect } from "../../wallet";
-import { switchNetwork } from "../../wallet/ethereum";
+import { injected, walletconnect, switchNetwork } from "../../wallet";
 
 export default function ConnectModal(props) {
   const { chainId, activate, active, error } = useWeb3React();
   const { opened, closeHandle, setError } = props;
 
   useEffect(() => {
-    setError(56 !== chainId && active);
-    if (error && error.toString().indexOf("UnsupportedChainIdError") > -1) {
-      console.log("switch");
-      switchNetwork();
-    }
+    const initNetwork = async () => {
+      setError(56 !== chainId && active);
+      if (56 !== chainId) {
+        await switchNetwork();
+      }
+    };
+    initNetwork();
   }, [active, chainId, error]);
 
   return (

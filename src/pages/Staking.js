@@ -5,7 +5,7 @@ import FixedStake from "./FixedStaking";
 import FlexibleLayout from "./FlexibleLayout";
 
 export default function Staking() {
-  const { active, account } = useWeb3React();
+  const { active } = useWeb3React();
   const [tabIndex, setTabIndex] = useState(1);
 
   return (

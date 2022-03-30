@@ -9,6 +9,7 @@
     "@web3-react/walletconnect-connector": "^6.2.13",
     "@web3-react/walletlink-connector": "^6.2.13",
     "classnames": "^2.2.6",
+    "ethers": "^5.6.2",
     "from-exponential": "^1.0.0",
     "npm-run-all": "^4.1.5",
     "react": "^16.13.0",

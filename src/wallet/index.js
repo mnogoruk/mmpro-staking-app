@@ -5,4 +5,5 @@ export {
   isEthereumConnected,
   isEthereumMetaMask,
   ethereumSendTransaction,
+  switchNetwork,
 } from "./ethereum";

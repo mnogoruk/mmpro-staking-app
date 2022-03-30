@@ -1,26 +1,23 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-undef */
 import React, { useEffect, useState } from "react";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
 import Card from "../components/common/Card";
 import Spinner from "../components/common/Spinner";
-import { initWeb3 } from "../utils.js";
 import FlexibleStake from "../contracts/FlexibleStake.json";
 import MMPRO from "../contracts/MMPRO.json";
-import BUSD from "../contracts/Busd.json";
 import fromExponential from "from-exponential";
-import { Link } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import FixedStake from "../contracts/FixedStake.json";
 import {
   getFlexibleStakingAddress,
   getFixedStakingAddress,
   getMMProAddress,
-  getBUSDAddress,
 } from "../utils/getAddress";
 import { useWeb3React } from "@web3-react/core";
-// import { Box, TabsContext, TabList, TabPanel, Tab } from "@mui/material";
+import { useWeb3 } from "../hooks/useContracts";
+import { injected } from "../wallet";
 
 const stakeTokenDataList = [
   {
@@ -29,27 +26,20 @@ const stakeTokenDataList = [
     addr: getMMProAddress(),
     img: "/images/mmpro.png",
   },
-  {
-    name: "Busd",
-    abi: BUSD.abi,
-    addr: getBUSDAddress(),
-    img: "/images/busd.png",
-  },
 ];
 const HomePage = (props) => {
-  const { account, active } = useWeb3React();
+  const { account, active, activate, error: networkError } = useWeb3React();
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(false);
   const [stakeLoading, setStakeLoading] = useState(false);
   const [unstakeLoading, setUnstakeLoading] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [error, setError] = useState("");
-  const [web3, setWeb3] = useState();
   const [accounts, setAccounts] = useState();
   const [flexibleStakeContract, setFlexibleStakeContract] = useState();
   const [fixedStakeContract, setFixedStakeContract] = useState();
   // const [stakeToken, setStakeToken] = useState();
-  // const [usersStake, setUserStake] = useState();
+  const [usersStake, setUserStake] = useState();
   // const [freeAmount, setFreeAmount] = useState();
   // const [totalSupply, setTotalSupply] = useState();
 
@@ -74,17 +64,22 @@ const HomePage = (props) => {
   const [apy, setAPY] = useState("");
   const [flexibleAPY, setFlexibleAPY] = useState(Array);
   const [initializing, setInitializing] = useState(false);
+  const [unstakeIndex, setUnstakeIndex] = useState(0);
+  const [firstUnstakeTime, setFirstUnstakeTime] = useState(0);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  var web3 = useWeb3();
+
+  useEffect(() => {
+    injected.isAuthorized().then((isAuthorized) => {
+      if (isAuthorized && !active && !networkError) {
+        activate(injected);
+      }
+    });
+  }, [active, activate, networkError]);
 
   const init = async () => {
     if (isReady()) {
-      return;
-    }
-    var web3;
-    try {
-      web3 = await initWeb3();
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
       return;
     }
 
@@ -109,7 +104,7 @@ const HomePage = (props) => {
       getFlexibleStakingAddress()
     );
     var tempStakeList = [];
-    for (var i = 0; i < stakeTokenDataList.length; i++) {
+    for (i = 0; i < stakeTokenDataList.length; i++) {
       var stakeTokenInfo = {};
       stakeTokenInfo["name"] = stakeTokenDataList[i]["name"];
       stakeTokenInfo["img"] = stakeTokenDataList[i]["img"];
@@ -143,7 +138,6 @@ const HomePage = (props) => {
     });
     setFlexibleAPY(tempAPY);
 
-    setWeb3(web3);
     setStakeTokenBoxList(tempStakeList);
     setAccounts(await web3.eth.getAccounts());
     setWishStakeContractList(tempWishStakeList);
@@ -152,10 +146,10 @@ const HomePage = (props) => {
   };
 
   const initFlexibleBalance = async () => {
+    console.log(curStakeTokenID, accounts[0]);
     const tmpBalance = await wishStakeContractList[curStakeTokenID].methods
       .balanceOf(accounts[0])
       .call();
-    console.log(curStakeTokenID, tmpBalance);
     const stakedByUserArray = await flexibleStakeContract.methods
       .getUserStakes(accounts[0])
       .call();
@@ -183,6 +177,7 @@ const HomePage = (props) => {
     // setStakeToken(stakeToken);
     // setBalance(balance);
     // setTotalStaked(totalStaked);
+    setUserStake(stakedByUserArray);
     setBalance(BigInt(tmpBalance));
     setStakedByUser(sumOfStaked);
     setTotalRewards(sumTotalRewards);
@@ -199,19 +194,19 @@ const HomePage = (props) => {
   };
 
   const initFixedBalance = async () => {
-    debugger;
     const tmpFixedStakeOptinos = await fixedStakeContract.methods
       .getStakeOptions(getMMProAddress())
       .call();
     const tmpBalance = await wishStakeContractList[0].methods
       .balanceOf(accounts[0])
       .call();
-    const stakedByUserArray = await flexibleStakeContract.methods
+    const stakedByUserArray = await fixedStakeContract.methods
       .getUserStakes(accounts[0])
       .call();
     var sumOfStaked = 0;
     var unstakeLists = [];
     var sumTotalRewards = 0;
+    var tmpFirstUnstake = 99999999999999999999;
     for (var i = 0; i < stakedByUserArray.length; i++) {
       sumTotalRewards += stakedByUserArray[i].rewards;
       if (stakedByUserArray[i].amount > 0) {
@@ -220,12 +215,18 @@ const HomePage = (props) => {
       if (stakedByUserArray[i].stakeToken === getMMProAddress()) {
         sumOfStaked += parseInt(stakedByUserArray[i].amount);
       }
+      tmpFirstUnstake =
+        parseInt(tmpFirstUnstake) > parseInt(stakedByUserArray[i].end)
+          ? parseInt(stakedByUserArray[i].end)
+          : parseInt(tmpFirstUnstake);
     }
+    setFirstUnstakeTime(tmpFirstUnstake);
     // setTotalSupply(totalSupply);
     // setFreeAmount(freeAmount);
     // setStakeToken(stakeToken);
     // setBalance(balance);
     // setTotalStaked(totalStaked);
+    setUserStake(stakedByUserArray);
     setFixedStakingOption(tmpFixedStakeOptinos);
     setBalance(tmpBalance);
     setStakedByUser(sumOfStaked);
@@ -276,6 +277,7 @@ const HomePage = (props) => {
         sumOfStaked += parseInt(stakedByUserArray[i].amount);
       }
     }
+    setUserStake(stakedByUserArray);
     setStakedByUser(sumOfStaked);
     return sumOfStaked;
   }
@@ -459,22 +461,35 @@ const HomePage = (props) => {
         }
         console.error(err);
       }
-    } else if (tabIndex === 2) {
-      try {
-        debugger;
-        const length = unstakeList.length;
-        for (var i = 0; i < length; i++) {
-          await fixedStakeContract.methods
-            .withdraw(getMMProAddress(), unstakeList[i]["id"])
-            .send({ from: accounts[0] });
-        }
-        await updateAll();
-      } catch (err) {
-        if (err.code !== 4001) {
-          setShowModal(true);
-        }
-        console.error(err);
+    }
+    setWithdrawLoading(false);
+  }
+
+  async function withdrawFixedEarning() {
+    if (parseFloat(totalRewards) === 0) {
+      console.error("No earnings yet!");
+      return;
+    }
+    setWithdrawLoading(true);
+    try {
+      debugger;
+      const s = await fixedStakeContract.methods
+        .usersStake(accounts[0], unstakeList[unstakeIndex]["id"])
+        .call();
+      console.log(s.end, Date.now() * 1000);
+      if (s.end < Date.now() / 1000) {
+        await fixedStakeContract.methods
+          .withdraw(getMMProAddress(), unstakeList[unstakeIndex]["id"])
+          .send({ from: accounts[0] });
+      } else {
+        setError("Not availalbe to Claim");
       }
+      await updateAll();
+    } catch (err) {
+      if (err.code !== 4001) {
+        setShowModal(true);
+      }
+      console.error(err);
     }
     setWithdrawLoading(false);
   }
@@ -525,7 +540,7 @@ const HomePage = (props) => {
       setInitializing(false);
     };
     initData();
-  }, [curStakeTokenID, tabIndex, web3, accounts]);
+  }, [curStakeTokenID, tabIndex, accounts]);
 
   // useEffect(() => {
   //   const init = async () => {
@@ -567,26 +582,42 @@ const HomePage = (props) => {
     initAPY();
   }, [amount]);
 
+  const calcUnstakeTime = (fistStaktime) => {
+    if (firstUnstakeTime >= 99999999999999999999) {
+      return "00h 00m 00s";
+    }
+    const date = new Date(fistStaktime * 1000);
+    const diff = date.getTime() - currentTime.getTime();
+    if (diff <= 0) {
+      return "00h 00m 00s";
+    }
+
+    const diffSecs = diff / 1000;
+    const diff_in_days = Math.floor(diffSecs / 3600 / 24).toFixed(0);
+    const diff_in_hours = Math.floor((diffSecs % (3600 * 24)) / 3600).toFixed(
+      0
+    );
+    const diff_in_mins = Math.floor(
+      ((diffSecs % (3600 * 24)) % 3600) / 60
+    ).toFixed(0);
+    const diff_in_secs = Math.floor((diffSecs % (3600 * 24)) % 3600) % 60;
+    return `${diff_in_days}d ${diff_in_hours}h ${diff_in_mins}m ${diff_in_secs}s`;
+  };
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+  }, [currentTime]);
+
   return (
     <div style={{ minHeight: "1000px" }}>
       {showModal && (
         <Modal title="" onClose={() => setShowModal(false)}>
-          <div className="text-2xl mb-2">
+          <div className="text-2xl mb-2 text-black">
             Error! Your transaction has been reverted!
           </div>
-          <div>1. Please check your account and retry again...</div>
-          <div>2. Your referrer's address is a registered member if any</div>
-
-          <div className="my-2">
-            Thanks for your support and feel free to{" "}
-            <a
-              href="https://www.leadwallet.io/contact"
-              className="text-blue-500"
-            >
-              contact us
-            </a>
-          </div>
-
+          <div className="text-black text-center">{error}</div>
           <div className="flex flex-row justify-center">
             <Button onClick={() => setShowModal(false)}>Close</Button>
           </div>
@@ -599,11 +630,10 @@ const HomePage = (props) => {
               {/* <dov className="flex flex-row justify-around"> */}
               <div className="flex items-center justify-center md:flex-row w-full mb-24 mt-6 flex-col">
                 <div className="text-left">
-                  <p className="text-6xl mb-2 font-semibold">Launchpad</p>
+                  <p className="text-6xl mb-2 font-semibold">MMPRO STAKING</p>
                   <p className="text-2xl mb-2 font-light">
-                    {" "}
-                    Connect your wallet &amp; Participate in IDO on MMPRO
-                    Launchpad. For allocation you need to have MMPRO token.{" "}
+                    Connect your wallet &amp; stake your MMPRO tokens to earn
+                    extra MMPRO tokens
                   </p>
                 </div>
                 <div>
@@ -673,7 +703,7 @@ const HomePage = (props) => {
           </Box> */}
           {active && loading && (
             <div className="flex justify-center">
-              <Spinner size={50} />
+              <Spinner size={100} />
             </div>
           )}
           {active && !loading && (
@@ -993,36 +1023,58 @@ const HomePage = (props) => {
 
                     <Card title="Your Earnings">
                       <div className="flex flex-col pt-8 px-2">
-                        <div className="text-center pb-8">
-                          <span className="text-white text-5xl">
-                            {parseFloat(
-                              totalRewards / 1000000000000000000
-                            ).toFixed(2)}
-                          </span>
-                          <span className="text-white text-2xl ml-2">
-                            MMPRO
-                          </span>
-                        </div>
-                        <div className="flex flex-row justify-center">
-                          <Button
-                            type="submit"
-                            className="flex flex-row items-center justify-center w-48"
-                            onClick={() => withdrawEarnings()}
-                          >
-                            {withdrawLoading ? (
-                              <Spinner size={30} />
-                            ) : (
-                              <>
-                                <img
-                                  src="/images/unlocked.svg"
-                                  width="25"
-                                  alt=""
-                                />
-                                <span className="w-32">CLAIM ALL</span>{" "}
-                              </>
-                            )}
-                          </Button>
-                        </div>
+                        {usersStake && usersStake.length <= 0 ? (
+                          <p className="text-center text-2xl">No eanring yet</p>
+                        ) : (
+                          <>
+                            <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
+                              <select
+                                value={unstakeIndex}
+                                onChange={(e) =>
+                                  setUnstakeIndex(e.target.value)
+                                }
+                                className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
+                              >
+                                {usersStake &&
+                                  usersStake.map((unstake, index) => (
+                                    <option key={index} value={index}>
+                                      {parseFloat(
+                                        unstake.amount / 1000000000000000000
+                                      ).toFixed(2)}
+                                      (
+                                      {parseFloat(
+                                        unstake.rewards / 1000000000000000000
+                                      ).toFixed(2)}
+                                      )
+                                    </option>
+                                  ))}
+                                ;
+                              </select>
+                            </div>
+                            <div className="flex flex-row justify-center mt-2">
+                              <Button
+                                type="submit"
+                                className="flex flex-row items-center justify-center w-48"
+                                onClick={() => withdrawFixedEarning()}
+                              >
+                                {withdrawLoading ? (
+                                  <Spinner size={30} />
+                                ) : (
+                                  <>
+                                    <img
+                                      src="/images/unlocked.svg"
+                                      width="25"
+                                      alt=""
+                                    />
+                                    <span className="w-64">
+                                      Unstake & Claim
+                                    </span>{" "}
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </Card>
 
@@ -1085,62 +1137,9 @@ const HomePage = (props) => {
                       </div>
                     </Card>
 
-                    <Card title="Unstaking">
-                      <div className="flex flex-col pt-8 px-2">
-                        <div className="text-center pb-4">
-                          <span className="text-lg text-gray-400">
-                            Available to unstake:{" "}
-                          </span>
-                          <span className="text-white text-3xl">
-                            {(
-                              parseFloat(stakedByUser) / 1000000000000000000
-                            ).toFixed(2)}
-                          </span>
-                          <span className="text-white text-2xl ml-2">
-                            MMPRO
-                          </span>
-                        </div>
-                        <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
-                          <select
-                            value={optionsState}
-                            onChange={onSelectChanged}
-                            className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
-                          >
-                            {unstakeList.map((unstake) => (
-                              <option key={unstake.id} value={unstake.id}>
-                                {parseFloat(
-                                  unstake.amount / 1000000000000000000
-                                ).toFixed(2)}
-                                {/* {unstake.amount} */}
-                              </option>
-                            ))}
-                            ;
-                          </select>
-                          {/* <input
-                        type="number"
-                        placeholder="MMPRO To Unstake"
-                        value={unstakeAmount}
-                        onChange={(e) => setUnstakeAmount(e.target.value)}
-                        className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
-                      /> */}
-                          <Button
-                            onClick={() => unstake()}
-                            className="flex flex-row items-center w-48 justify-center"
-                          >
-                            {unstakeLoading ? (
-                              <Spinner size={30} />
-                            ) : (
-                              <>
-                                <img
-                                  src="/images/unlocked.svg"
-                                  width="25"
-                                  alt=""
-                                />
-                                <span className="w-36">UNSTAKE ALL</span>
-                              </>
-                            )}
-                          </Button>
-                        </div>
+                    <Card title="Time to stake">
+                      <div className="flex flex-col pt-8 px-2 text-center">
+                        {calcUnstakeTime(firstUnstakeTime)}
                       </div>
                     </Card>
                   </div>

@@ -1,28 +1,16 @@
 import React, { useState } from "react";
-import { initWeb3 } from "../utils.js";
-import cx from "classnames";
-import { useEffect } from "react/cjs/react.production.min";
 import Button from "./common/Button.js";
-import Modal from "./common/Modal.js";
 import ConnectModal from "./common/ConnectModal.js";
 import { useWeb3React } from "@web3-react/core";
 
 const Header = () => {
-  const { library, chainId, account, activate, deactivate, active } =
-    useWeb3React();
-  const [network, setNetwork] = useState(undefined);
-  const [message, setMessage] = useState("");
-  const [signature, setSignature] = useState("");
-  const [verified, setVerified] = useState();
+  const { account, deactivate, active } = useWeb3React();
   const [onOpen, onClose] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState(false);
 
   const refreshState = () => {
     window.localStorage.setItem("provider", undefined);
-    setNetwork("");
-    setMessage("");
-    setSignature("");
-    setVerified(undefined);
   };
 
   const disconnect = () => {
