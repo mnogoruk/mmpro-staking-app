@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-undef */
 import React, { useEffect, useState } from "react";
+import numeral from "numeral";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
 import Card from "../components/common/Card";
@@ -28,6 +29,7 @@ const stakeTokenDataList = [
   },
 ];
 const HomePage = (props) => {
+  const { price, totalSupply, mmcap } = props;
   const { account, active, activate, error: networkError } = useWeb3React();
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(false);
@@ -76,7 +78,7 @@ const HomePage = (props) => {
         activate(injected);
       }
     });
-  }, [active, activate, networkError]);
+  }, [activate, networkError]);
 
   const init = async () => {
     if (isReady()) {
@@ -640,21 +642,21 @@ const HomePage = (props) => {
                   <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO price</h1>
                     <div className="flex items-center justify-center flex-row">
-                      <p> 0.1321</p>
+                      <p> {price.toFixed(4)}</p>
                       <h1> USD </h1>
                     </div>
                   </div>
                   <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO marketcap</h1>
                     <div className="flex items-center justify-center flex-row">
-                      <p> 13.1m</p>
+                      <p> {numeral(mmcap).format("0.0a")}</p>
                       <h1> USD </h1>
                     </div>
                   </div>
                   <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO supply</h1>
                     <div className="flex items-center justify-center flex-row">
-                      <p> 99.50m</p>
+                      <p> {numeral(totalSupply).format("0.00a")}</p>
                       <h1> MMPRO </h1>
                     </div>
                   </div>

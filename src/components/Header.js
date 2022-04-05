@@ -9,12 +9,7 @@ const Header = () => {
   // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState(false);
 
-  const refreshState = () => {
-    window.localStorage.setItem("provider", undefined);
-  };
-
   const disconnect = () => {
-    refreshState();
     deactivate();
   };
 
@@ -29,7 +24,7 @@ const Header = () => {
       <header className="container px-4 mx-auto py-4">
         <div className="flex flex-row justify-between items-center w-full">
           <div>
-            <a href="https://fstaking.github.io/">
+            <a href="/#">
               <img
                 src="/images/full-logo.png"
                 width="180"

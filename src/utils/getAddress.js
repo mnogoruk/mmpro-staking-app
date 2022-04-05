@@ -13,3 +13,7 @@ export const getBUSDAddress = () => {
 export const getMMProAddress = () => {
   return "0x6067490d05F3cF2fdFFC0e353b1f5Fd6E5CCDF70";
 };
+
+export const getLPAddress = () => {
+  return "0x656aa2eaa2f0ef876686c76c36a010e0f4d1e4a3";
+};
