@@ -92,6 +92,7 @@ header {
     rgb(24, 25, 51) 100%
   );
   color: white;
+  min-height: 100vh;
 }
 
 .home-gradient {
@@ -124,7 +125,7 @@ header {
 }
 
 .card-bg {
-  background-color: rgba(0, 0, 0, 0.37);
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .footer-bg {

@@ -6,6 +6,7 @@ import numeral from "numeral";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
 import Card from "../components/common/Card";
+import BorderCard from "../components/common/BorderCard";
 import Spinner from "../components/common/Spinner";
 import FlexibleStake from "../contracts/FlexibleStake.json";
 import MMPRO from "../contracts/MMPRO.json";
@@ -19,6 +20,7 @@ import {
 import { useWeb3React } from "@web3-react/core";
 import { useWeb3 } from "../hooks/useContracts";
 import { injected } from "../wallet";
+import { AiOutlineDown, AiOutlineUp } from "react-icons/ai";
 
 const stakeTokenDataList = [
   {
@@ -69,6 +71,7 @@ const HomePage = (props) => {
   const [unstakeIndex, setUnstakeIndex] = useState(0);
   const [firstUnstakeTime, setFirstUnstakeTime] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [flexibleStakeDowned, setFlexibleStakeDowned] = useState(false);
 
   var web3 = useWeb3();
 
@@ -416,6 +419,7 @@ const HomePage = (props) => {
   }
 
   async function unstake() {
+    debugger;
     if (parseFloat(stakedByUser) === 0) {
       console.error("You don't have any staked LEADs yet!");
       return;
@@ -430,7 +434,7 @@ const HomePage = (props) => {
       //   .call();
       // const count = _userStake.length;
       await flexibleStakeContract.methods
-        .withdraw(optionsState)
+        .withdrawAllWithRewards(unstakeList[parseInt(optionsState)]["id"])
         .send({ from: accounts[0] });
       await updateAll();
     } catch (err) {
@@ -496,9 +500,9 @@ const HomePage = (props) => {
     setWithdrawLoading(false);
   }
 
-  const handleSelectCurStake = (index) => {
-    setCurStakeTokenID(index);
-  };
+  // const handleSelectCurStake = (index) => {
+  //   setCurStakeTokenID(index);
+  // };
 
   const onSelectChanged = (event) => {
     setOptionsState(event.target.value);
@@ -632,7 +636,12 @@ const HomePage = (props) => {
               {/* <dov className="flex flex-row justify-around"> */}
               <div className="flex items-center justify-center md:flex-row w-full mb-24 mt-6 flex-col">
                 <div className="text-left">
-                  <p className="text-6xl mb-2 font-semibold">MMPRO STAKING</p>
+                  <p
+                    className="mb-2 font-semibold"
+                    style={{ fontSize: "60px" }}
+                  >
+                    MMPRO STAKING
+                  </p>
                   <p className="text-2xl mb-2 font-light">
                     Connect your wallet &amp; stake your MMPRO tokens to earn
                     extra MMPRO tokens
@@ -642,22 +651,22 @@ const HomePage = (props) => {
                   <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO price</h1>
                     <div className="flex items-center justify-center flex-row">
-                      <p> {price.toFixed(4)}</p>
-                      <h1> USD </h1>
+                      <p>{price.toFixed(4)}</p>
+                      <h1>&nbsp;USD</h1>
                     </div>
                   </div>
                   <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO marketcap</h1>
                     <div className="flex items-center justify-center flex-row">
-                      <p> {numeral(mmcap).format("0.0a")}</p>
-                      <h1> USD </h1>
+                      <p>{numeral(mmcap).format("0.0a")}</p>
+                      <h1>&nbsp;USD</h1>
                     </div>
                   </div>
                   <div className="transparentCard justify-between w-60 md:w-80 ml-13">
                     <h1> MMPRO supply</h1>
                     <div className="flex items-center justify-center flex-row">
-                      <p> {numeral(totalSupply).format("0.00a")}</p>
-                      <h1> MMPRO </h1>
+                      <p>{numeral(totalSupply).format("0.00a")}</p>
+                      <h1>&nbsp;MMPRO</h1>
                     </div>
                   </div>
                 </div>
@@ -711,279 +720,280 @@ const HomePage = (props) => {
           {active && !loading && (
             <>
               <div>
-                <div
-                  className="w-full mx-0 h-12 my-4 shadow rounded font-bold"
-                  style={{ background: "rgba(255, 255, 255, 0.15)" }}
-                >
-                  <ul className="flex border-b md:px-5">
+                <div className="w-full mx-0 mt-4 mb-1 rounded">
+                  <ul className="flex justify-start">
                     <li
                       onClick={() => setTabIndex(1)}
                       className={
                         tabIndex === 1
-                          ? "text-sm border-primary pt-3 rounded-t text-primary md:mr-12 mr-1 cursor-default"
-                          : "text-sm text-white py-3 flex items-center md:mr-12 mr-1 hover:text-primary cursor-pointer"
+                          ? "text-sm border-none py-1 px-4 rounded-md text-black mr-1 cursor-default bg-white"
+                          : "text-sm text-white py-1 px-4 mr-1 cursor-pointer bg-none"
                       }
                     >
-                      <div className="flex items-center mb-3">
-                        Flexible Stake
-                      </div>
-                      {tabIndex === 1 && (
-                        <div className="w-full h-1 bg-primary rounded-t-md" />
-                      )}
+                      <p className="font-normal  m-0 p-0">Flexible Stake</p>
                     </li>
                     <li
                       onClick={() => setTabIndex(2)}
                       className={
                         tabIndex === 2
-                          ? "text-sm border-primary pt-3 rounded-t text-primary md:mr-12 mr-1 cursor-default"
-                          : "text-sm text-white py-3 flex items-center md:mr-12 mr-1 hover:text-primary cursor-pointer"
+                          ? "text-sm border-none py-1 px-4 rounded-md text-black mr-1 cursor-default bg-white"
+                          : "text-sm text-white py-1 px-4 mr-1 cursor-pointer bg-none"
                       }
                     >
-                      <div className="flex items-center mb-3">
-                        Fixed Stake ({apy})
-                      </div>
-                      {tabIndex === 2 && (
-                        <div className="w-full h-1 bg-primary rounded-t-md" />
-                      )}
+                      <p className="font-light  m-0 p-0">Fixed Stake ({apy})</p>
                     </li>
                   </ul>
                 </div>
               </div>
-              <div className="transparentCard justify-center">
-                {stakeTokenBoxList.length > 0 &&
-                  curStakeTokenID === -1 &&
-                  tabIndex === 1 &&
-                  !initializing && (
-                    <div className="grid grid-col-1 md:gap-6 gap-2 w-full">
-                      {/* className="transparentCard justify-between w-auto mx-12" */}
-                      <div className="text-center">
-                        <span className="text-white text-2xl">
-                          Please select one!
-                        </span>
-                        {stakeTokenBoxList.map((stakeTokenBox, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between w-auto md:mx-12 mx-1 my-2 rounded-lg card-bg py-4 md:px-8 px-1"
-                          >
-                            <div className="flex justify-start">
-                              <img
-                                src={stakeTokenBox["img"]}
-                                width="60"
-                                alt={stakeTokenBox["name"]}
-                              />
-                              <div className="flex flex-col md:mx-4 mx-1">
-                                <div className="flex flex-row justify-between">
-                                  <div className="font-extrabold">
-                                    {stakeTokenBox["name"]}
-                                  </div>
+              <div>
+                {stakeTokenBoxList.length > 0 && tabIndex === 1 && (
+                  <div className="grid grid-col-1 gap-2 w-full card-bg rounded-lg">
+                    {/* className="transparentCard justify-between w-auto mx-12" */}
+                    <div className="text-center">
+                      {stakeTokenBoxList.map((stakeTokenBox, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            setCurStakeTokenID(
+                              flexibleStakeDowned ? -1 : index
+                            );
+                            setFlexibleStakeDowned(!flexibleStakeDowned);
+                          }}
+                          className="flex justify-between w-auto py-4 px-5 items-center"
+                        >
+                          <div className="flex justify-start">
+                            <img
+                              src={stakeTokenBox["img"]}
+                              width="60"
+                              alt={stakeTokenBox["name"]}
+                            />
+                            <div className="flex flex-col md:mx-4 mx-1">
+                              <div className="flex flex-row justify-between">
+                                <div className="font-extrabold">
+                                  {stakeTokenBox["name"]}
                                 </div>
-                                <div className="flex flex-row justify-between">
-                                  <div>TVL: </div>
-                                  <div className="font-black">
-                                    {stakeTokenBox["TVL"] / 1000000000000000000}
-                                  </div>
+                              </div>
+                              <div className="flex flex-row justify-between">
+                                <div>TVL: </div>
+                                <div className="font-black">
+                                  {stakeTokenBox["TVL"] / 1000000000000000000}
                                 </div>
-                                <div className="flex flex-row justify-between">
-                                  <div>APY: </div>
-                                  <div className="font-extrabold">
-                                    {flexibleAPY[index]["APY"]}
-                                  </div>
+                              </div>
+                              <div className="flex flex-row justify-between">
+                                <div>APY: </div>
+                                <div className="font-extrabold">
+                                  {flexibleAPY[index]["APY"]}
                                 </div>
                               </div>
                             </div>
-                            <Button onClick={() => handleSelectCurStake(index)}>
+                          </div>
+                          {flexibleStakeDowned ? (
+                            <AiOutlineUp />
+                          ) : (
+                            <AiOutlineDown />
+                          )}
+                          {/* <Button onClick={() => handleSelectCurStake(index)}>
                               Stake
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
+                            </Button> */}
+                        </div>
+                      ))}
                     </div>
-                  )}
-                {curStakeTokenID !== -1 &&
-                  initLoading === false &&
-                  tabIndex === 1 &&
-                  !initializing && (
-                    <div className="grid grid-col-1 md:grid-cols-2 gap-6 mt-10 w-full">
-                      <Card title="Your / Total Staked MMPRO">
-                        <div className="flex flex-col pt-8 pb-4 text-white">
-                          <div className="text-center">
-                            <span className="text-white text-2xl ml-2">
-                              Yours
-                            </span>
-                            <span className="text-white text-5xl">
-                              {parseFloat(
-                                BigInt(stakedByUser) /
-                                  BigInt(1000000000000000000)
-                              ).toFixed(2)}
-                            </span>
-                            <span className="text-white text-2xl ml-2">
-                              MMPRO
-                            </span>
-                            <br />
-                            <span className="text-white text-2xl ml-2">
-                              Total
-                            </span>
-                            <span className="text-white text-5xl">
-                              {parseFloat(
-                                BigInt(totalStaked) /
-                                  BigInt(1000000000000000000)
-                              ).toFixed(2)}
-                            </span>
-                            <span className="text-white text-2xl ml-2">
-                              MMPRO
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            {parseFloat(
-                              (parseFloat(totalStaked) /
-                                parseFloat(balance.toString())) *
-                                parseInt(100)
-                            ).toFixed(5)}
-                            %
-                          </div>
-                          <div className="text-center">of total supply</div>
-                        </div>
-                      </Card>
-
-                      <Card title="Your Earnings">
-                        <div className="flex flex-col pt-8 px-2">
-                          <div className="text-center pb-8">
-                            <span className="text-white text-5xl">
-                              {parseFloat(
-                                totalRewards / 1000000000000000000
-                              ).toFixed(2)}
-                            </span>
-                            <span className="text-white text-2xl ml-2">
-                              MMPRO
-                            </span>
-                          </div>
-                          <div className="flex flex-row justify-center">
-                            <Button
-                              type="submit"
-                              className="flex flex-row items-center justify-center w-48"
-                              onClick={() => withdrawEarnings()}
-                            >
-                              {withdrawLoading ? (
-                                <Spinner size={30} />
-                              ) : (
-                                <>
-                                  <img
-                                    src="/images/unlocked.svg"
-                                    width="25"
-                                    alt=""
-                                  />
-                                  <span className="w-32">CLAIM ALL</span>{" "}
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card title="Staking">
-                        <div className="flex flex-col pt-8 px-2">
-                          <div className="text-center pb-4">
-                            <span className="text-lg text-gray-400">
-                              Available amount:{" "}
-                            </span>
-                            <span className="text-white text-3xl">
-                              {BigInt(
-                                BigInt(balance) / BigInt(1000000000000000000)
-                              ).toString()}
-                            </span>
-                            <span className="text-white text-2xl ml-2">
-                              MMPRO
-                            </span>
-                          </div>
-                          <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
-                            <input
-                              type="number"
-                              placeholder="MMPRO To Stake"
-                              value={amount}
-                              onChange={(e) => setAmount(e.target.value)}
-                              className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
-                            />
-                            <Button
-                              onClick={() => stake()}
-                              className="flex flex-row items-center justify-center"
-                            >
-                              {stakeLoading ? (
-                                <Spinner size={30} />
-                              ) : (
-                                <>
-                                  <img
-                                    src="/images/locked.svg"
-                                    width="25"
-                                    alt=""
-                                  />
-                                  <span className="w-48">APPROVE & STAKE</span>{" "}
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card title="Unstaking">
-                        <div className="flex flex-col pt-8 px-2">
-                          <div className="text-center pb-4">
-                            <span className="text-lg text-gray-400">
-                              Available to unstake:{" "}
-                            </span>
-                            <span className="text-white text-3xl">
-                              {(
-                                parseFloat(stakedByUser) / 1000000000000000000
-                              ).toFixed(2)}
-                            </span>
-                            <span className="text-white text-2xl ml-2">
-                              MMPRO
-                            </span>
-                          </div>
-                          <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
-                            <select
-                              value={optionsState}
-                              onChange={onSelectChanged}
-                              className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
-                            >
-                              {unstakeList.map((unstake) => (
-                                <option key={unstake.id} value={unstake.id}>
+                    {curStakeTokenID !== -1 &&
+                      initLoading === false &&
+                      tabIndex === 1 &&
+                      !initializing && (
+                        <div className="grid grid-col-1 md:grid-cols-2 gap-6 w-full p-2">
+                          <BorderCard title="Your / Total Staked MMPRO">
+                            <div className="flex flex-col pt-8 pb-4 text-white">
+                              <div className="text-center">
+                                <span className="text-white text-2xl ml-2">
+                                  Yours
+                                </span>
+                                <span className="text-white text-5xl">
                                   {parseFloat(
-                                    unstake.amount / 1000000000000000000
+                                    BigInt(stakedByUser) /
+                                      BigInt(1000000000000000000)
+                                  ).toFixed(2)}
+                                </span>
+                                <span className="text-white text-2xl ml-2">
+                                  MMPRO
+                                </span>
+                                <br />
+                                <span className="text-white text-2xl ml-2">
+                                  Total
+                                </span>
+                                <span className="text-white text-5xl">
+                                  {parseFloat(
+                                    BigInt(totalStaked) /
+                                      BigInt(1000000000000000000)
+                                  ).toFixed(2)}
+                                </span>
+                                <span className="text-white text-2xl ml-2">
+                                  MMPRO
+                                </span>
+                              </div>
+                              <div className="text-center">
+                                {parseFloat(
+                                  (parseFloat(totalStaked) /
+                                    parseFloat(balance.toString())) *
+                                    parseInt(100)
+                                ).toFixed(5)}
+                                %
+                              </div>
+                              <div className="text-center">of total supply</div>
+                            </div>
+                          </BorderCard>
+
+                          <BorderCard title="Your Earnings">
+                            <div className="flex flex-col pt-8 px-2">
+                              <div className="text-center pb-8">
+                                <span className="text-white text-5xl">
+                                  {parseFloat(
+                                    totalRewards / 1000000000000000000
+                                  ).toFixed(2)}
+                                </span>
+                                <span className="text-white text-2xl ml-2">
+                                  MMPRO
+                                </span>
+                              </div>
+                              <div className="flex flex-row justify-center">
+                                <Button
+                                  type="submit"
+                                  className="flex flex-row items-center justify-center w-48"
+                                  onClick={() => withdrawEarnings()}
+                                >
+                                  {withdrawLoading ? (
+                                    <Spinner size={30} />
+                                  ) : (
+                                    <>
+                                      <img
+                                        src="/images/unlocked.svg"
+                                        width="25"
+                                        alt=""
+                                      />
+                                      <span className="w-32">CLAIM ALL</span>{" "}
+                                    </>
                                   )}
-                                  {/* {unstake.amount} */}
-                                </option>
-                              ))}
-                              ;
-                            </select>
-                            {/* <input
+                                </Button>
+                              </div>
+                            </div>
+                          </BorderCard>
+
+                          <BorderCard title="Staking">
+                            <div className="flex flex-col pt-8 px-2">
+                              <div className="text-center pb-4">
+                                <span className="text-lg text-gray-400">
+                                  Available amount:{" "}
+                                </span>
+                                <span className="text-white text-3xl">
+                                  {BigInt(
+                                    BigInt(balance) /
+                                      BigInt(1000000000000000000)
+                                  ).toString()}
+                                </span>
+                                <span className="text-white text-2xl ml-2">
+                                  MMPRO
+                                </span>
+                              </div>
+                              <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
+                                <input
+                                  type="number"
+                                  placeholder="MMPRO To Stake"
+                                  value={amount}
+                                  onChange={(e) => setAmount(e.target.value)}
+                                  className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
+                                />
+                                <Button
+                                  onClick={() => stake()}
+                                  className="flex flex-row items-center justify-center"
+                                >
+                                  {stakeLoading ? (
+                                    <Spinner size={30} />
+                                  ) : (
+                                    <>
+                                      <img
+                                        src="/images/locked.svg"
+                                        width="25"
+                                        alt=""
+                                      />
+                                      <span className="w-48">
+                                        APPROVE & STAKE
+                                      </span>{" "}
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          </BorderCard>
+
+                          <BorderCard title="Unstaking">
+                            <div className="flex flex-col pt-8 px-2">
+                              <div className="text-center pb-4">
+                                <span className="text-lg text-gray-400">
+                                  Available to unstake:{" "}
+                                </span>
+                                <span className="text-white text-3xl">
+                                  {(
+                                    parseFloat(stakedByUser) /
+                                    1000000000000000000
+                                  ).toFixed(2)}
+                                </span>
+                                <span className="text-white text-2xl ml-2">
+                                  MMPRO
+                                </span>
+                              </div>
+                              <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
+                                <select
+                                  value={optionsState}
+                                  onChange={onSelectChanged}
+                                  className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
+                                >
+                                  {unstakeList.map((unstake) => (
+                                    <option key={unstake.id} value={unstake.id}>
+                                      {parseFloat(
+                                        unstake.amount / 1000000000000000000
+                                      )}
+                                      {/* {unstake.amount} */}
+                                    </option>
+                                  ))}
+                                  ;
+                                </select>
+                                {/* <input
                       type="number"
                       placeholder="MMPRO To Unstake"
                       value={unstakeAmount}
                       onChange={(e) => setUnstakeAmount(e.target.value)}
                       className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
                     /> */}
-                            <Button
-                              onClick={() => unstake()}
-                              className="flex flex-row items-center w-48 justify-center"
-                            >
-                              {unstakeLoading ? (
-                                <Spinner size={30} />
-                              ) : (
-                                <>
-                                  <img
-                                    src="/images/unlocked.svg"
-                                    width="25"
-                                    alt=""
-                                  />
-                                  <span className="w-36">UNSTAKE ALL</span>
-                                </>
-                              )}
-                            </Button>
-                          </div>
+                                <Button
+                                  onClick={() => unstake()}
+                                  className="flex flex-row items-center w-48 justify-center"
+                                >
+                                  {unstakeLoading ? (
+                                    <Spinner size={30} />
+                                  ) : (
+                                    <>
+                                      <img
+                                        src="/images/unlocked.svg"
+                                        width="25"
+                                        alt=""
+                                      />
+                                      <span className="w-36">UNSTAKE ALL</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          </BorderCard>
                         </div>
-                      </Card>
-                    </div>
-                  )}
+                      )}
+                    {initLoading && (
+                      <div className="flex justify-center">
+                        <Spinner color="white" size={100} />
+                      </div>
+                    )}
+                  </div>
+                )}
                 {initLoading === false && tabIndex === 2 && (
                   <div className="grid grid-col-1 md:grid-cols-2 gap-6 mt-10 w-full">
                     <Card title="Your / Total Staked MMPRO">
@@ -1146,8 +1156,8 @@ const HomePage = (props) => {
                     </Card>
                   </div>
                 )}
-                {initLoading && (
-                  <div className="my-12">
+                {initLoading && tabIndex === 2 && (
+                  <div className="flex justify-center">
                     <Spinner color="white" size={100} />
                   </div>
                 )}

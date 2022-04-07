@@ -8,14 +8,13 @@ export default ({
   onClick,
   className,
   children,
-  uppercase = true,
+  uppercase,
 }) => {
   return (
     <button
       onClick={onClick}
       className={cx(
         className,
-        "rounded-md px-4 py-2 mx-1 font-Montserrat-ExtraBold",
         uppercase ? "uppercase" : "",
         showBorder ? "border" : "",
         "bg-" + bgColor,
@@ -24,8 +23,18 @@ export default ({
         "text-" + color,
         "hover:text-" + color + "-hover",
         "border-" + color,
-        "hover:border-" + color + "-hover"
+        "hover:border-" + color + "-hover",
+        "focus-within:outline-none",
+        "focus-visible:outline-none",
+        "focus:outline-none"
       )}
+      style={{
+        borderRadius: "5px",
+        padding: "10px",
+        fontSize: "14px",
+        border: "none",
+        fontWeight: "lighter",
+      }}
     >
       {children}
     </button>

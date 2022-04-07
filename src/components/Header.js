@@ -14,8 +14,12 @@ const Header = () => {
   };
 
   function truncate(str) {
+    console.log(
+      str,
+      str.substr(0, 6) + "..." + str.substr(str.length - 4, str.length - 1)
+    );
     return str.length > 0
-      ? str.substr(0, 4) + "..." + str.substr(str.length - 4, str.length - 1)
+      ? str.substr(0, 6) + "..." + str.substr(str.length - 4, str.length - 1)
       : str;
   }
 
@@ -42,7 +46,9 @@ const Header = () => {
               Connect Wallet
             </Button>
           ) : (
-            <Button onClick={disconnect}>{truncate(account)}</Button>
+            <Button onClick={disconnect} bgColor="secondary">
+              {truncate(account)}
+            </Button>
           )}
         </div>
       </header>
