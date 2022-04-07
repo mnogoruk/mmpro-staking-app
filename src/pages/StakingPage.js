@@ -357,6 +357,9 @@ const HomePage = (props) => {
 
   async function stake() {
     setStakeLoading(true);
+    if (amount === 0 || amount > (balance/1000000000000000000)) {
+      return;
+    }
     const actual = amount * 10 ** 18;
     const arg = fromExponential(actual);
     try {
@@ -513,7 +516,7 @@ const HomePage = (props) => {
   };
 
   const cAPY = (amount, emission) => {
-    if (totalStaked && amount) {
+    if (totalStaked && amount > 0) {
       const shareRate = BigInt(amount * 100) / (totalStaked + BigInt(amount));
       const currentRewardsPerday =
         (BigInt(shareRate) * BigInt(emission)) / BigInt(100);
