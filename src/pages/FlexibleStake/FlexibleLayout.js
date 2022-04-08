@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-undef */
 import React, { useState, useEffect } from "react";
-import MMPRO from "../contracts/MMPRO.json";
-import BUSD from "../contracts/Busd.json";
-import { getMMProAddress, getBUSDAddress } from "../utils/getAddress";
-import { useFlexibleStaking } from "../hooks/useContracts";
+import MMPRO from "../../contracts/MMPRO.json";
+import BUSD from "../../contracts/Busd.json";
+import { getMMProAddress, getBUSDAddress } from "../../utils/getAddress";
+import { useFlexibleStaking } from "../../hooks/useContracts";
 import { useWeb3React } from "@web3-react/core";
 import SelectFlexibleToken from "./SelectFlexibleToken";
 import FlexibleStaking from "./FlexibleStaking";

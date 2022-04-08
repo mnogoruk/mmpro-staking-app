@@ -10,6 +10,7 @@ import {
 } from "./hooks/useContracts";
 import { getLPAddress } from "./utils/getAddress";
 import { getBalanceOfToken, getTotalSupply } from "./hooks/contractsFunction";
+import Staking from "./pages/Staking";
 
 const App = () => {
   const [mmproBalance, setMMProBalance] = useState(0);
@@ -37,7 +38,8 @@ const App = () => {
   return (
     <div className="w-full overflow-hidden main-gradient">
       <Header />
-      <StakingPage price={price} totalSupply={totalSupply} mmcap={mmCap} />
+      {/* <StakingPage price={price} totalSupply={totalSupply} mmcap={mmCap} /> */}
+      <Staking price={price} totalSupply={totalSupply} mmcap={mmCap} />
       <Footer />
     </div>
   );
