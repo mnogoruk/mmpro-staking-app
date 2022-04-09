@@ -14,10 +14,6 @@ const Header = () => {
   };
 
   function truncate(str) {
-    console.log(
-      str,
-      str.substr(0, 6) + "..." + str.substr(str.length - 4, str.length - 1)
-    );
     return str.length > 0
       ? str.substr(0, 6) + "..." + str.substr(str.length - 4, str.length - 1)
       : str;

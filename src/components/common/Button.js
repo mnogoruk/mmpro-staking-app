@@ -9,6 +9,7 @@ export default ({
   className,
   children,
   uppercase,
+  disabled,
 }) => {
   return (
     <button
@@ -28,6 +29,7 @@ export default ({
         "focus-visible:outline-none",
         "focus:outline-none"
       )}
+      disabled={disabled}
       style={{
         borderRadius: "5px",
         padding: "10px",

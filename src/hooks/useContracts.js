@@ -3,12 +3,14 @@ import { useWeb3React } from "@web3-react/core";
 
 import {
   getBUSDAddress,
+  getFixedStakingAddress,
   getFlexibleStakingAddress,
   getLPAddress,
   getMMProAddress,
 } from "../utils/getAddress";
 // import MMPRO from "../contracts/MMPRO.json";
 import FlexibleStake from "../contracts/FlexibleStake.json";
+import FixedStake from "../contracts/FixedStake.json";
 import LPContract from "../contracts/LPContract.json";
 import MMPRO from "../contracts/MMPRO.json";
 import BUSD from "../contracts/Busd.json";
@@ -31,27 +33,31 @@ export const useWeb3 = () => {
 };
 
 const useContract = (abi, address) => {
-  const { library } = useWeb3React();
-  const web3 = new Web3(library.currentProvider || httpProvider);
+  const web3 = useWeb3();
   return new web3.eth.Contract(abi, address);
 };
 
-export const useFlexibleStaking = (_) => {
+export const useFlexibleStaking = () => {
   const abi = FlexibleStake.abi;
   return useContract(abi, getFlexibleStakingAddress());
 };
 
-export const useLPContract = (web3) => {
+export const useFixedStaking = () => {
+  const abi = FixedStake.abi;
+  return useContract(abi, getFixedStakingAddress());
+};
+
+export const useLPContract = () => {
   const abi = LPContract.abi;
-  return new web3.eth.Contract(abi, getLPAddress());
+  return useContract(abi, getLPAddress());
 };
 
-export const useBUSDContract = (web3) => {
+export const useBUSDContract = () => {
   const abi = BUSD.abi;
-  return new web3.eth.Contract(abi, getBUSDAddress());
+  return useContract(abi, getBUSDAddress());
 };
 
-export const useMMProContract = (web3) => {
+export const useMMProContract = () => {
   const abi = MMPRO.abi;
-  return new web3.eth.Contract(abi, getMMProAddress());
+  return useContract(abi, getMMProAddress());
 };

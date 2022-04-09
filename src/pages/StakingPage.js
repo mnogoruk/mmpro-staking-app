@@ -357,7 +357,7 @@ const HomePage = (props) => {
 
   async function stake() {
     setStakeLoading(true);
-    if (amount === 0 || amount > (balance/1000000000000000000)) {
+    if (amount === 0 || amount > balance / 1000000000000000000) {
       return;
     }
     const actual = amount * 10 ** 18;
