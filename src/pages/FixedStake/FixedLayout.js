@@ -260,12 +260,14 @@ export default function FixedLayout(props) {
                   onChange={onStakeOptionSelectChanged}
                   className="text-white font-extrabold flex-shrink text-2xl w-full bg-transparent focus:outline-none focus:bg-white focus:text-black px-2"
                 >
-                  {fixedStakingOption.map((option, index) => (
-                    <option key={index} value={index}>
-                      Option {index + 1} :{parseFloat(option.periodInDays)}
+                  {/* {fixedStakingOption.map((option, index) => ( */}
+                  {fixedStakingOption.length > 0 && (
+                    <option key={0} value={0}>
+                      Option 1 :{parseFloat(fixedStakingOption[0].periodInDays)}{" "}
+                      Mins
                     </option>
-                  ))}
-                  ;
+                  )}
+                  {/* ))} */}
                 </select>
               </div>
               <div className="rounded-md border-2 border-primary p-2 flex justify-between items-center">
