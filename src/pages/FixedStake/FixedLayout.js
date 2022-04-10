@@ -254,6 +254,7 @@ export default function FixedLayout(props) {
                 </span>
                 <span className="text-white text-2xl ml-2">MMPRO</span>
               </div>
+              <span className="text-lg text-gray-400">Staking Duration</span>
               <div className="rounded-md border-2 border-primary p-2 my-2 flex justify-between items-center">
                 <select
                   value={stakingOptionState}
@@ -263,8 +264,7 @@ export default function FixedLayout(props) {
                   {/* {fixedStakingOption.map((option, index) => ( */}
                   {fixedStakingOption.length > 0 && (
                     <option key={0} value={0}>
-                      Option 1 :{parseFloat(fixedStakingOption[0].periodInDays)}{" "}
-                      Mins
+                      {parseFloat(fixedStakingOption[0].periodInDays)} Mins
                     </option>
                   )}
                   {/* ))} */}

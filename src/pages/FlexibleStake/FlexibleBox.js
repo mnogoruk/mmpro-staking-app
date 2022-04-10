@@ -80,6 +80,7 @@ export default function FlexibleBox(props) {
         sumOfStaked += parseInt(stakedByUserArray[i].amount);
       }
     }
+    setAmount(0);
     setAllowance(BigInt(allowance));
     setTotalStaked(totalStaked);
     setBalance(BigInt(tmpBalance));
