@@ -77,6 +77,7 @@ export default function FixedLayout(props) {
             }
             setUpdateLoading(false)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [flag])
 
     const initFixedStake = async () => {
